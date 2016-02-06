@@ -1,0 +1,153 @@
+* {
+	box-sizing: border-box;
+}
+
+html {
+	padding: 0px;
+	margin: 0px;
+	height: 100%;
+	
+	overflow: hidden;
+}
+
+body {
+	margin: -10px 0px;
+	padding: 0px;
+	height: calc(100% +10px);
+	width: 100%;
+	background-color: #222;
+	color: white;
+	position: relative;
+	overflow: hidden;
+}
+
+header {
+	height: 60px;
+	width: 100%;
+	background-color: #008ae6;
+	box-shadow: 0px 3px #006bb3;
+	position: relative;
+	margin-bottom: 3px;
+}
+
+footer {
+	clear: both;
+    position: absolute;
+    z-index: 10;
+    height: 70px;
+    bottom: 10px;
+	width: 100%;
+	box-shadow: 0px -3px #006bb3;
+	background-color: #008ae6;
+}
+
+#logo {
+	background-image: url(logo.png);
+	background-size: 100%;
+	width: 100px;
+	height: 100%;
+	position: absolute;
+	transition: transform .2s;
+}
+
+#logo:hover {
+	transform: rotate(30deg);
+}
+
+#searchBox {
+	background-color: rgba(255,255,255,.3);
+	box-shadow: 0px 0px 2px rgba(256,255,255,.4) inset;
+	width: 60%;
+	position: absolute;
+	height: 40px;
+	border-radius: 3px;
+	padding: 0px 5px;
+	font-size: 150%;
+	font-weight: 200;
+	color: #e5f5ff;
+	border: none;
+	margin: 10px 20%;
+	display: inline-block;
+}
+
+::-webkit-input-placeholder {
+	color: #80ccff;
+}
+
+::mox-placeholder {
+	color: #80ccff;
+}
+
+#searchWindow {
+	display: none;
+	position: absolute;
+	margin: 50px 20%;
+	padding: 0px 5px;
+	min-height: 200px;
+	width: 60%;
+	height: auto;
+	max-height: 1000px;
+
+	background-color: #333;
+	border-radius: 3px;
+}
+
+#searchWindow:hover {
+	display: block;
+}
+
+#searchBox:focus + #searchWindow{
+	display: block;
+}
+
+#bullshit {
+	margin-top: 10px;
+}
+
+#leftBar {
+	display: inline-block;
+	position: absolute;
+	border-right: 15px solid #666;
+	padding: 4px 10px;
+	margin-left: -240px;
+	width: 	250px;
+	background-color: #333;
+	height:	calc(100% - 150px);
+	transition: margin-left .3s;
+}
+
+#leftBar:hover, #leftBar:focus {
+	margin-left: 0px;
+}
+
+#content {
+	display: inline-block;
+	padding: 20px;
+	width: 100%;
+	height:	calc(100% - 150px);
+	/*display: none;*/
+}
+
+#stations {
+	display: inline-block;
+	padding: 20px;
+	width: 100%;
+	height:	calc(100% - 150px);
+	display: none;
+}
+
+#chatBar {
+	display: inline-block;
+	position: absolute;
+	border-left: 15px solid #666;
+	padding: 4px 10px;
+	right: -390px;
+	width: 	400px;
+	background-color: #333;
+	height:	calc(100% - 150px);
+	transition: right .3s;
+}
+
+#chatBar:hover, #chatBar:focus {
+	right: 0px;
+}
