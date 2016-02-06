@@ -30,7 +30,7 @@ Parameters:
 | Key | Value                                                                      |
 |-----|----------------------------------------------------------------------------|
 | q   | Required. The search string.                                               |
-| d   | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from YouTube Data API, instead of the cleaned up version from the scraper. If not set, the default is false. |
+| debug | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from YouTube Data API, instead of the cleaned up version from the scraper. If not set, the default is false. |
 
 Response:
 
@@ -51,7 +51,7 @@ Parameters:
 | Key | Value                                                                      |
 |-----|----------------------------------------------------------------------------|
 | q   | Required. The search string.                                               |
-| d   | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from SoundCloud Web API, instead of the cleaned up version from the scraper. If not set, the default is false. |
+| debug | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from SoundCloud Web API, instead of the cleaned up version from the scraper. If not set, the default is false. |
 
 Response:
 
