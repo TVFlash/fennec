@@ -42,7 +42,7 @@ def allMedia(stationid):
 @app.route('/api/<int:stationid>/remove', methods=['POST'])
 def removeMedia(stationid):
 	#TODO: Parse JSON object and remove it for the station's queue if exists
-	return 201
+	return jsonify({'status':'success'}), 201
 
 
 
