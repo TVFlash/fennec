@@ -20,28 +20,41 @@ To send a move request through your browser ```curl -i -H "Content-Type: applica
 
 ##Scraper
 ###YouTube
+
 Endpoint: /api/search/youtube
-Request Type: Get
+
+Request Type: GET
+
 Parameters:
+
 | Key | Value                                                                      |
 |-----|----------------------------------------------------------------------------|
 | q   | Required. The search string.                                               |
-| d   | Optional. Debug mode: 'true' or 'false'. If not set, the default is false. |
+| d   | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from YouTube Data API, instead of the cleaned up version from the scraper. If not set, the default is false. |
+
 Response:
+
 | Key         | Value                                                      |
 |-------------|------------------------------------------------------------|
 | status      | 'success' or 'failure'                                     |
 | description | When status is failure, it will include the error.         |
 | items       | When status is success, it will include an array of media. |
+
 ###SoundCloud
+
 Endpoint: /api/search/soundcloud
-Request Type: Get
+
+Request Type: GET
+
 Parameters:
+
 | Key | Value                                                                      |
 |-----|----------------------------------------------------------------------------|
 | q   | Required. The search string.                                               |
-| d   | Optional. Debug mode: 'true' or 'false'. If not set, the default is false. |
+| d   | Optional. Debug mode: 'true' or 'false'. If true, it will print the original content from SoundCloud Web API, instead of the cleaned up version from the scraper. If not set, the default is false. |
+
 Response:
+
 | Key         | Value                                                      |
 |-------------|------------------------------------------------------------|
 | status      | 'success' or 'failure'                                     |
