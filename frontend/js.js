@@ -1,3 +1,36 @@
+var username;
+
+$(document).ready(function (){
+	username = getCookie('username')
+	while(username === "")
+		username = prompt("Enter a username","Guest" + Math.floor(Math.random() * 1000000));
+	document.cookie = 'username=' + username;
+	$("#user").text(username);
+})
+
+$('#user').on("click", function(e){
+	var tusername = prompt("Enter a username","Guest" + Math.floor(Math.random() * 1000000));
+	if(tusername != "")
+		username = tusername;
+	else
+		username = "Guest" + Math.floor(Math.random() * 1000000);
+	document.cookie = 'username=' + username;
+	$("#user").text(username);
+});
+
+
+//Lifted from W3Schools
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
 $('#searchBox').on("keypress", function (e) {
 
     if (e.keyCode == 13) { //newline
@@ -36,3 +69,72 @@ function createSCSearchPreviewItem(datum){
 	var preview = "<div class='previewBox'><img src='" + datum.thumbnail + "'/><h1>" + datum.title + "</h1><p>" + datum.uploader + "</p></div>";
 	$('#searchWindow').append(preview);
 }
+
+function loadStation(data){
+	clearPlaylist();
+	$.each(data.queue, function(item){
+		addToPlayList(item);
+	})
+	stationView();
+	setStationColor(data.color);
+}
+
+function setStationColor(color){
+	$('#header').css('background-color', color);
+	$('#footer').css('background-color', "0px 3px " + color)
+}
+
+function stationView(){
+	$('#leftBar').show();
+	$('#chatBar').show();
+	$('#stations').hide();
+	$('#content').show();
+	$('#stationCreator').hide();
+}
+
+function browseView(){
+	loadStationList();
+	$('#leftBar').hide();
+	$('#chatBar').hide();
+	$('#stations').show();
+	$('#content').hide();
+	$('#stationCreator').hide();
+}
+
+function loadStationList(){
+	console.log("LOADSTATIONS: DO ME");
+}
+
+$('#createStation').on("click", function(e) {
+	$('#stationCreator').fadeIn();
+})
+
+$('#cancelCreate').on("click", function(e) {
+	$('#stationCreator').fadeOut();
+})
+
+$('#create').on("click", function(e) {
+	var stationName = $('#stationName').val();
+	var stationColor = $('#stationColor').val();
+
+	if(stationName === "" || stationColor === "")
+		return;
+
+	$.post("http://localhost:5000/api/create", {
+		title: stationName,
+		color: stationColor,
+		owner: username,
+		visible: $("#stationVisible").val()
+	}, function(data) {
+		loadStation(data)
+	}, "json");
+	console.log("Failed to create station");
+})
+
+$('#refreshStations').on("click", function(e){
+	loadStationList();
+})
+
+$('#logo').on("click", function(e) {
+	browseView();
+})
