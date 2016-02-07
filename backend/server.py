@@ -51,7 +51,7 @@ def searchYouTube():
 	q = request.args.get('q')
 	if not q:
 		return jsonify({'status':'failure', 'description':'missing argument \'q\''}), 201
-	response = requests.get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&order=relevance&q=' + q + '&type=video&videoDefinition=any&key=AIzaSyASsdIg2A2eb-W9UlfOx4sIVRLZ2y1h63c')
+	response = requests.get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&order=relevance&q=' + q + '&type=video&videoDefinition=any&key=AIzaSyASsdIg2A2eb-W9UlfOx4sIVRLZ2y1h63c')
 	json_obj = response.json()
 	items = json_obj['items']
 	d = request.args.get('debug')
@@ -77,7 +77,7 @@ def searchSoundCloud():
 	q = request.args.get('q')
 	if not q:
 		return jsonify({'status':'failure', 'description':'missing argument \'q\''}), 201
-	response = requests.get('http://api.soundcloud.com/tracks.json?client_id=87dd0b14dbc81970b9b4becdf176c498&q=' + q + '&limit=50')
+	response = requests.get('http://api.soundcloud.com/tracks.json?client_id=87dd0b14dbc81970b9b4becdf176c498&q=' + q + '&limit=10')
 	json_obj = response.json()
 	d = request.args.get('debug')
 	if d and d != 'true' and d != 'false':
@@ -93,6 +93,7 @@ def searchSoundCloud():
 			item['trackId'] = item['id']
 			item['format'] = item['original_format']
 			item['publishedAt'] = item['created_at']
+			item['uploader'] = item['user']['username']
 			del item['user'], item['user_favorite'], item['user_id'], item['user_playback_count'], item['video_url'], item['waveform_url'], item['state'], item['stream_url'], item['streamable'], item['tag_list'], item['track_type'], item['uri'], item['sharing'], item['reposts_count'], item['release_year'], item['release_month'], item['release_day'], item['release'], item['purchase_url'], item['purchase_title'], item['permalink'], item['permalink_url'], item['playback_count'], item['license'], item['likes_count'], item['last_modified'], item['label_name'], item['label_id'], item['kind'], item['key_signature'], item['isrc'], item['id'], item['original_format'], item['original_content_size'], item['genre'], item['favoritings_count'], item['embeddable_by'], item['downloadable'], item['download_url'], item['download_count'], item['created_at'], item['commentable'], item['comment_count'], item['bpm'], item['attachments_uri'], item['artwork_url']
 	return jsonify({'status':'success', 'items':json_obj}), 201
 
