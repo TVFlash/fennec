@@ -1,19 +1,20 @@
 * {
 	box-sizing: border-box;
+	font-family: Helvetica, Segoe UI
 }
 
 html {
 	padding: 0px;
 	margin: 0px;
 	height: 100%;
-	
+
 	overflow: hidden;
 }
 
 body {
 	margin: -10px 0px;
 	padding: 0px;
-	height: calc(100% +10px);
+	height: calc(100% + 20px);
 	width: 100%;
 	background-color: #222;
 	color: white;
@@ -83,10 +84,11 @@ footer {
 	position: absolute;
 	margin: 50px 20%;
 	padding: 0px 5px;
-	min-height: 200px;
+	min-height: 100px;
 	width: 60%;
 	height: auto;
-	max-height: 1000px;
+	max-height: 400px;
+	overflow:scroll;
 
 	background-color: #333;
 	border-radius: 3px;
@@ -150,4 +152,31 @@ footer {
 
 #chatBar:hover, #chatBar:focus {
 	right: 0px;
+}
+
+.previewBox {
+	height: 80px;
+	border-bottom: 1px solid #222;
+	margin-top: -20px;
+	transition: background-color .1s;
+}
+
+.previewBox:hover {
+	background-color: #666;
+}
+
+.previewBox img {
+	margin: 5px;
+	height: 70px;
+	float: left;
+}
+
+.previewBox h1 {
+	font-family: Helvetica;
+	height: 35px;
+	overflow: hidden;
+}
+
+.previewBox p {
+	color: #BBB;
 }
