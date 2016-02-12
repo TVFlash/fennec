@@ -1,0 +1,8 @@
+#Chat Server
+
+##Overview
+Using the frontend webpage, users send messages to server.py and redistribute the message to other users that are in the same channel.
+
+##Details
+Users send JSON packets that contain the user's nickname, channel ID, and the message itself. 
+The server processes this message and sends a JSON packet back to each of the clients that are in the same channel as the sender.
