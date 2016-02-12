@@ -3,7 +3,7 @@
 ##Install
 You should have Python 2.7.X installed (All Mac OS X machines and some Linux machines comes with this pre-installed)
 The flask framework can be installed through Python Package Manager using ```pip install flask; pip install flask-cors```
-The requests framework can be installed through Python Package Manager using ```pip install requests```
+The requests framework can be installed through Python Package Manager using ```pip install requests```. The web socket server can be installed with ```pip install websocket-server```
 
 ##Running
 Start the server with ```python server.py```

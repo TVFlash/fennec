@@ -5,6 +5,23 @@ import json
 
 app = Flask(__name__)
 
+#Max Number of stations
+maxNumStations = 100
+
+class mediaObject:
+	def __init__(self):
+		self.id = ''
+		self.uri = ''
+		self.thubnail = ''
+		self.addedBy = ''
+
+class stationObject:
+	def __init__(self):
+		self.name = ''		
+		self.queue = ''
+
+stationList = [ stationObject() for i in range(maxNumStations)]
+
 @app.route('/')
 def index():
 	return "Please use /api/"
@@ -108,12 +125,12 @@ station_index = 0
 
 #Just join chat services
 def new_client(client, server):
-	print("%d connected", % client['id'])
+	print("%d connected" % client['id'])
 	server.send_message_to_all("New Client")
 
 #Just leave chat services
 def client_left(client, server):
-	print("%d disconnected", % client['id'])
+	print("%d disconnected" % client['id'])
 
 #Redirect to handlers or send message
 def message_received(client, server, message):
@@ -131,12 +148,12 @@ def message_received(client, server, message):
 	
 
 #Put client into specific station
-def client_join_chat_station(client, stationid)
+def client_join_chat_station(client, stationid):
 	chat_station_users[stationid].append(client)
 	return
 
 #Remove client from specific station
-def client_leave_chat_station(client, stationid)
+def client_leave_chat_station(client, stationid):
 	chat_station_users[stationid].remove(client)
 	return
 
