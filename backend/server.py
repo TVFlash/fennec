@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, url_for
 from websocket_server import WebsocketServer
+from Queue import Queue
 import requests
 import json
 
@@ -13,12 +14,13 @@ class mediaObject:
 		self.id = ''
 		self.uri = ''
 		self.thubnail = ''
+		self.length = ''
 		self.addedBy = ''
 
 class stationObject:
 	def __init__(self):
 		self.name = ''		
-		self.queue = ''
+		self.queue = Queue()
 
 stationList = [ stationObject() for i in range(maxNumStations)]
 
@@ -35,17 +37,31 @@ def addStation():
 @app.route('/api/<int:stationid>/add', methods=['POST'])
 def addMedia(stationid):
 	#TODO: Parse JSON object and store in queue stationid
-	return 201
+	media = mediaObject()
+	media.id = '1'
+	media.uri= 'https://www.youtube.com/watch?v=IuysY1BekOE',
+	media.thumbnail = 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
+	media.length = '0:05',
+	media.addedBy = 'Tim'
+	
+	stationList[stationid].queue.put(media)
+	print("added ID 1")
+	return jsonify({'result': 'Media added'}),201
 
 @app.route('/api/<int:stationid>/next', methods=['GET'])
 def nextMedia(stationid):
+
+#	print(stationList[stationid].queue.get())
+	nextItem = stationList[stationid].queue.get()
 	media = {
-		'id' : '1',
-		'uri': 'https://www.youtube.com/watch?v=IuysY1BekOE',
+		'id' : nextItem.id,
+		'uri': nextItem.uri,
 		'thumbnail': 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
 		'length': '0:05',
 		'addedBy': 'Tim'
 	}
+	print(media)
+
 	return jsonify(media),201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
@@ -116,7 +132,7 @@ def searchSoundCloud():
 	return jsonify({'status':'success', 'items':json_obj}), 201
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	app.run(port=2000,debug=True)
 
 #Beginning of Chat websocket implementation
 
