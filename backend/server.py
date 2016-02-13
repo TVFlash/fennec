@@ -1,8 +1,28 @@
 from flask import Flask, jsonify, request, url_for
+from websocket_server import WebsocketServer
+from Queue import Queue
 import requests
 import json
 
 app = Flask(__name__)
+
+#Max Number of stations
+maxNumStations = 100
+
+class mediaObject:
+	def __init__(self):
+		self.id = ''
+		self.uri = ''
+		self.thubnail = ''
+		self.length = ''
+		self.addedBy = ''
+
+class stationObject:
+	def __init__(self):
+		self.name = ''		
+		self.queue = Queue()
+
+stationList = [ stationObject() for i in range(maxNumStations)]
 
 @app.route('/')
 def index():
@@ -17,17 +37,31 @@ def addStation():
 @app.route('/api/<int:stationid>/add', methods=['POST'])
 def addMedia(stationid):
 	#TODO: Parse JSON object and store in queue stationid
-	return 201
+	media = mediaObject()
+	media.id = '1'
+	media.uri= 'https://www.youtube.com/watch?v=IuysY1BekOE',
+	media.thumbnail = 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
+	media.length = '0:05',
+	media.addedBy = 'Tim'
+	
+	stationList[stationid].queue.put(media)
+	print("added ID 1")
+	return jsonify({'result': 'Media added'}),201
 
 @app.route('/api/<int:stationid>/next', methods=['GET'])
 def nextMedia(stationid):
+
+#	print(stationList[stationid].queue.get())
+	nextItem = stationList[stationid].queue.get()
 	media = {
-		'id' : '1',
-		'uri': 'https://www.youtube.com/watch?v=IuysY1BekOE',
+		'id' : nextItem.id,
+		'uri': nextItem.uri,
 		'thumbnail': 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
 		'length': '0:05',
 		'addedBy': 'Tim'
 	}
+	print(media)
+
 	return jsonify(media),201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
@@ -98,4 +132,51 @@ def searchSoundCloud():
 	return jsonify({'status':'success', 'items':json_obj}), 201
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	app.run(port=2000,debug=True)
+
+#Beginning of Chat websocket implementation
+
+chat_station_users = [] #chat_station_users[stationid] = list_of_users
+station_index = 0
+
+#Just join chat services
+def new_client(client, server):
+	print("%d connected" % client['id'])
+	server.send_message_to_all("New Client")
+
+#Just leave chat services
+def client_left(client, server):
+	print("%d disconnected" % client['id'])
+
+#Redirect to handlers or send message
+def message_received(client, server, message):
+	json_obj = message.json();
+	if json_obj['type'] == 'send':
+		#Send normal message
+		for c in chat_station_users[json_obj['stationid']]:
+			server.send_message(c, json_obj['message'])
+	elif json_obj['type'] == 'join':
+		#Join station
+		client_join_chat_station(client, json_obj['stationid'])
+	elif json_obj['type'] == 'leave':
+		#Leave station
+		client_leave_chat_station(client, json_obj['stationid'])
+	
+
+#Put client into specific station
+def client_join_chat_station(client, stationid):
+	chat_station_users[stationid].append(client)
+	return
+
+#Remove client from specific station
+def client_leave_chat_station(client, stationid):
+	chat_station_users[stationid].remove(client)
+	return
+
+server = WebsocketServer(5000)
+server.set_fn_new_client(new_client)
+server.set_fn_client_left(client_left)
+server.set_fn_message_received(message_recieved)
+server.run_forever()
+
+#End of Chat websocket implementation
