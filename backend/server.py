@@ -16,6 +16,7 @@ class mediaObject:
 		self.thubnail = ''
 		self.length = ''
 		self.addedBy = ''
+		self.jsondata = {}
 
 class stationObject:
 	def __init__(self):
@@ -37,32 +38,32 @@ def addStation():
 @app.route('/api/<int:stationid>/add', methods=['POST'])
 def addMedia(stationid):
 	#TODO: Parse JSON object and store in queue stationid
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err':'Please enter a station number between 0 and 99'}), 404
+
+	if not request.json:
+		return jsonify({'err': 'Not JSON type'}), 400
+
+	newItem = {
+		'id' : request.json['id'],
+		'uri': request.json['uri'],
+		'thumbnail': request.json['thumbnail'],
+		'length': request.json['length'],
+		'addedBy': request.json['addedBy']
+
+	}
+
 	media = mediaObject()
-	media.id = '1'
-	media.uri= 'https://www.youtube.com/watch?v=IuysY1BekOE',
-	media.thumbnail = 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
-	media.length = '0:05',
-	media.addedBy = 'Tim'
-	
+	media.jsondata = newItem
 	stationList[stationid].queue.put(media)
-	print("added ID 1")
 	return jsonify({'result': 'Media added'}),201
 
 @app.route('/api/<int:stationid>/next', methods=['GET'])
 def nextMedia(stationid):
-
-#	print(stationList[stationid].queue.get())
-	nextItem = stationList[stationid].queue.get()
-	media = {
-		'id' : nextItem.id,
-		'uri': nextItem.uri,
-		'thumbnail': 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg',
-		'length': '0:05',
-		'addedBy': 'Tim'
-	}
-	print(media)
-
-	return jsonify(media),201
+	if stationList[stationid].queue.empty():
+		return jsonify({'err': 'empty queue'}),404
+ 
+	return jsonify(stationList[stationid].queue.get().jsondata),201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
 def allMedia(stationid):
