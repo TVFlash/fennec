@@ -177,7 +177,7 @@ def client_leave_chat_station(client, stationid):
 server = WebsocketServer(5000)
 server.set_fn_new_client(new_client)
 server.set_fn_client_left(client_left)
-server.set_fn_message_received(message_recieved)
+server.set_fn_message_received(message_received)
 server.run_forever()
 
 #End of Chat websocket implementation
