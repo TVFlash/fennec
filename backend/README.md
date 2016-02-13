@@ -7,7 +7,7 @@ The requests framework can be installed through Python Package Manager using ```
 
 ##Running
 Start the server with ```python server.py```
-The server will now be bound to port 5000 on your localhost
+The server will now be bound to port 2000 on your localhost
 
 ##Default Pages
 The default pages that exist are accessed at '/' and '/api'. The first is a test landing page and the second is the subdirectory of all endpoints
@@ -16,7 +16,7 @@ The default pages that exist are accessed at '/' and '/api'. The first is a test
 TODO
 
 ##Example
-To send a move request through your browser ```curl -i -H "Content-Type: application/json" -X POST -d '{"uri":"https://www.youtube.com/watch?v=IuysY1BekOE"}' http://localhost:5000/api/1/remove```
+To send a move request through your browser ``` curl -i -H "Content-Type: application/json" -X POST -d '{"id":"2","uri":"https://www.youtube.com/watch?v=IuysY1BekOE","thumbnail":"https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg","length":"0:05","addedBy":"Tim"}' http://localhost:2000/api/1/add```
 
 ##Scraper
 ###YouTube
@@ -25,7 +25,7 @@ Endpoint: /api/search/youtube
 
 Request Type: GET
 
-Parameters:
+Parameters:`
 
 | Key | Value                                                                      |
 |-----|----------------------------------------------------------------------------|
