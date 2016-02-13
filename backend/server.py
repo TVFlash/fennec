@@ -131,9 +131,6 @@ def searchSoundCloud():
 			del item['user'], item['user_favorite'], item['user_id'], item['user_playback_count'], item['video_url'], item['waveform_url'], item['state'], item['stream_url'], item['streamable'], item['tag_list'], item['track_type'], item['uri'], item['sharing'], item['reposts_count'], item['release_year'], item['release_month'], item['release_day'], item['release'], item['purchase_url'], item['purchase_title'], item['permalink'], item['permalink_url'], item['playback_count'], item['license'], item['likes_count'], item['last_modified'], item['label_name'], item['label_id'], item['kind'], item['key_signature'], item['isrc'], item['id'], item['original_format'], item['original_content_size'], item['genre'], item['favoritings_count'], item['embeddable_by'], item['downloadable'], item['download_url'], item['download_count'], item['created_at'], item['commentable'], item['comment_count'], item['bpm'], item['attachments_uri'], item['artwork_url']
 	return jsonify({'status':'success', 'items':json_obj}), 201
 
-if __name__ == '__main__':
-	app.run(port=2000,debug=True)
-
 #Beginning of Chat websocket implementation
 
 chat_station_users = [] #chat_station_users[stationid] = list_of_users
@@ -173,10 +170,12 @@ def client_leave_chat_station(client, stationid):
 	chat_station_users[stationid].remove(client)
 	return
 
-server = WebsocketServer(5000)
-server.set_fn_new_client(new_client)
-server.set_fn_client_left(client_left)
-server.set_fn_message_received(message_received)
-server.run_forever()
+if __name__ == '__main__':
+	app.run(port=2000,debug=True)
+	server = WebsocketServer(5000)
+	server.set_fn_new_client(new_client)
+	server.set_fn_client_left(client_left)
+	server.set_fn_message_received(message_received)
+	server.run_forever()
 
 #End of Chat websocket implementation
