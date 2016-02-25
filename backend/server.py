@@ -1,87 +1,121 @@
 from flask import Flask, jsonify, request, url_for
 from websocket_server import WebsocketServer
-from Queue import Queue
 import requests
 import json
 
 app = Flask(__name__)
 
-#Max Number of stations
-maxNumStations = 100
+
+#====================================================================================
+#MARK: Classes
+#====================================================================================
 
 class mediaObject:
 	def __init__(self):
-		self.id = ''
-		self.uri = ''
-		self.thubnail = ''
-		self.length = ''
-		self.addedBy = ''
-		self.jsondata = {}
+		self.jsondata = {}  # JSON representation of a media
 
 class stationObject:
 	def __init__(self):
-		self.name = ''		
-		self.queue = Queue()
+		self.id = -1         # -1 -> Inactive | 0+ -> Active
+		self.queue = []      # Holding a list of mediaObject
 
-stationList = [ stationObject() for i in range(maxNumStations)]
+
+#====================================================================================
+#MARK: Constants
+#====================================================================================
+
+MAX_NUM_STATIONS = 100
+stationList = [stationObject() for i in range(MAX_NUM_STATIONS)]
+		
+
+#====================================================================================
+#MARK: Server Web API
+#====================================================================================
 
 @app.route('/')
+#Tell the user to use /api/
 def index():
 	return "Please use /api/"
 
 @app.route('/api/create', methods=['POST'])
+#Attempt to activate a station and return its station id
 def addStation():
-	#TODO: Parse JSON object, create new station and return stationid
-	return 201
+	stationId = -1
+	for i in range(len(stationList)):
+	    if stationList[i].id == -1:
+	        stationList[i].id = stationId = i
+	        break
+	if stationId == -1:
+		return jsonify({'err': 'All stations are currently active'}), 201
+	return jsonify({'stationId': stationId}), 201
 
 
 @app.route('/api/<int:stationid>/add', methods=['POST'])
+#Adds the given media (in HTTP body) to the target station
 def addMedia(stationid):
-	#TODO: Parse JSON object and store in queue stationid
 	if stationid < 0  or stationid > 99:
-		return jsonify({'err':'Please enter a station number between 0 and 99'}), 404
-
+		return jsonify({'err': 'Please enter a station number between 0 and 99'}), 201
 	if not request.json:
-		return jsonify({'err': 'Not JSON type'}), 400
-
-	newItem = {
+		return jsonify({'err': 'Not JSON type'}), 201
+	media = mediaObject()
+	media.jsondata = {
 		'id' : request.json['id'],
 		'uri': request.json['uri'],
 		'thumbnail': request.json['thumbnail'],
 		'length': request.json['length'],
 		'addedBy': request.json['addedBy']
-
 	}
+	stationList[stationid].queue.append(media)
+	return jsonify({'result': 'Media added'}), 201
 
-	media = mediaObject()
-	media.jsondata = newItem
-	stationList[stationid].queue.put(media)
-	return jsonify({'result': 'Media added'}),201
-
-@app.route('/api/<int:stationid>/next', methods=['GET'])
-def nextMedia(stationid):
-	if stationList[stationid].queue.empty():
-		return jsonify({'err': 'empty queue'}),404
- 
-	return jsonify(stationList[stationid].queue.get().jsondata),201
+@app.route('/api/<int:stationid>/<int:mediaid>/next', methods=['GET'])
+#Retrieves the next media after the given media id, in the target station's queue
+def nextMedia(stationid, mediaid):
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	if len(stationList[stationid].queue) == 0:
+		return jsonify({'err': 'empty queue'}), 201
+	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.jsondata['id'] == mediaid), -1)
+	if index == -1:
+		return jsonify({'err': 'media with given id not found'}), 201
+	if index + 1 >= len(stationList[stationid].queue):
+		return jsonify({'err': 'no next media in queue'}), 201
+	return jsonify(stationList[stationid].queue[index + 1].jsondata), 201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
+#Return a list of all the media in the target station's queue
 def allMedia(stationid):
-	queue = [{}]
-	queue[0]['id'] = '1'
-	queue[0]['uri'] = 'https://www.youtube.com/watch?v=IuysY1BekOE'
-	queue[0]['thumbnail'] = 'https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg'
-	queue[0]['length'] = '0:05'
-	queue[0]['addedBy']= 'Tim'
-	#TODO: Return full queue for station stationid
-	return jsonify(queue[0]),201
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	return json.dumps([mediaItem.jsondata for index, mediaItem in enumerate(stationList[stationid].queue)]), 201
 
-@app.route('/api/<int:stationid>/remove', methods=['POST'])
-def removeMedia(stationid):
-	#TODO: Parse JSON object and remove it for the station's queue if exists
+@app.route('/api/<int:stationid>/<int:mediaid>/remove', methods=['GET'])
+#Remove the media with media id from the target station's queue if it exists
+def removeMedia(stationid, mediaid):
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	for index, mediaItem in enumerate(stationList[stationid].queue):
+		if mediaItem.jsondata['id'] == mediaid:
+			stationList[stationid].queue.remove(mediaItem)
 	return jsonify({'status':'success'}), 201
 
+@app.route('/api/<int:stationid>/destroy', methods=['GET'])
+#Destroys the target station (deactivate it)
+def destroyStation(stationid):
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	station = stationList[stationid]
+	station.id = -1
+	del station.queue[:]
+	return jsonify({'status':'success'}), 201
+	
+
+#====================================================================================
+#MARK: YT + SC Crawler Web API
+#====================================================================================
+
 @app.route('/api/search/youtube', methods=['GET'])
+#Crawl YouTube
 def searchYouTube():
 	q = request.args.get('q')
 	if not q:
@@ -108,6 +142,7 @@ def searchYouTube():
 	return jsonify({'status':'success', 'items':items}), 201 
 
 @app.route('/api/search/soundcloud', methods=['GET'])
+#Crawl SoundCloud
 def searchSoundCloud():
 	q = request.args.get('q')
 	if not q:
@@ -131,6 +166,11 @@ def searchSoundCloud():
 			item['uploader'] = item['user']['username']
 			del item['user'], item['user_favorite'], item['user_id'], item['user_playback_count'], item['video_url'], item['waveform_url'], item['state'], item['stream_url'], item['streamable'], item['tag_list'], item['track_type'], item['uri'], item['sharing'], item['reposts_count'], item['release_year'], item['release_month'], item['release_day'], item['release'], item['purchase_url'], item['purchase_title'], item['permalink'], item['permalink_url'], item['playback_count'], item['license'], item['likes_count'], item['last_modified'], item['label_name'], item['label_id'], item['kind'], item['key_signature'], item['isrc'], item['id'], item['original_format'], item['original_content_size'], item['genre'], item['favoritings_count'], item['embeddable_by'], item['downloadable'], item['download_url'], item['download_count'], item['created_at'], item['commentable'], item['comment_count'], item['bpm'], item['attachments_uri'], item['artwork_url']
 	return jsonify({'status':'success', 'items':json_obj}), 201
+
+
+#====================================================================================
+#MARK: WebSocket
+#====================================================================================
 
 #Beginning of Chat websocket implementation
 
