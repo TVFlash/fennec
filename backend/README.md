@@ -18,6 +18,67 @@ TODO
 ##Example
 To send a move request through your browser ``` curl -i -H "Content-Type: application/json" -X POST -d '{"id":"2","uri":"https://www.youtube.com/watch?v=IuysY1BekOE","thumbnail":"https://i.ytimg.com/vi/IuysY1BekOE/mqdefault.jpg","length":"0:05","addedBy":"Tim"}' http://localhost:2000/api/1/add```
 
+##Server
+###Create a station
+
+Endpoint: /api/create
+
+Request Type: POST
+
+Description: Creates a station by going through the current 100 stations. The server would activate a station if it is not currently in use and return its id.
+
+###Add media to a station
+
+Endpoint: /api/(int:stationid)/add
+
+Request Type: POST
+
+Description: Adds the given media specified in the HTTP Body to the station's queue.
+
+Example Request - HTTP Body Data: 
+```
+{
+  "id": 0,
+	"uri": "testuri",
+	"thumbnail": "testtn",
+	"length": "testl",
+	"addedBy": "testab"
+}
+```
+
+###Gets the next media in a station
+
+Endpoint: /api/(int:stationid)/(int:mediaid)/next
+
+Description: Retrieves the media after the given media id, from the station's queue.
+
+Request Type: GET
+
+###List all media in a station
+
+Endpoint: /api/(int:stationid)
+
+Description: Returns a list of mediaObject from the station's queue
+
+Request Type: GET
+
+###Remove media from a station
+
+Endpoint: /api/(int:stationid)/(int:mediaid)/remove
+
+Description: The server will try to remove the media, specified by the media id, from the station's queue if found.
+
+Request Type: GET
+
+###Destroy a station
+
+Endpoint: /api/(int:stationid)/destroy
+
+Description: The station with that given station id will be destroyed. Basically, the server will deactivate it and clear its queue.
+
+Request Type: GET
+
+
 ##Scraper
 ###YouTube
 
