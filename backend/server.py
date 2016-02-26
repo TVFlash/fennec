@@ -33,12 +33,10 @@ stationList = [stationObject() for i in range(MAX_NUM_STATIONS)]
 #====================================================================================
 
 @app.route('/')
-#Tell the user to use /api/
 def index():
 	return "Please use /api/"
 
 @app.route('/api/create', methods=['POST'])
-#Attempt to activate a station and return its station id
 def addStation():
 	stationId = -1
 	for i in range(len(stationList)):
@@ -51,7 +49,6 @@ def addStation():
 
 
 @app.route('/api/<int:stationid>/add', methods=['POST'])
-#Adds the given media (in HTTP body) to the target station
 def addMedia(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err': 'Please enter a station number between 0 and 99'}), 201
@@ -69,13 +66,10 @@ def addMedia(stationid):
 	return jsonify({'result': 'Media added'}), 201
 
 @app.route('/api/<int:stationid>/<int:mediaid>/next', methods=['GET'])
-#Retrieves the next media after the given media id, in the target station's queue
 def nextMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
-	if len(stationList[stationid].queue) == 0:
-		return jsonify({'err': 'empty queue'}), 201
-	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.jsondata['id'] == mediaid), -1)
+	index = next((i for i, item in enumerate(stationList[stationid].queue) if str(item.jsondata['id']) == str(mediaid)), -1)
 	if index == -1:
 		return jsonify({'err': 'media with given id not found'}), 201
 	if index + 1 >= len(stationList[stationid].queue):
@@ -83,14 +77,12 @@ def nextMedia(stationid, mediaid):
 	return jsonify(stationList[stationid].queue[index + 1].jsondata), 201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
-#Return a list of all the media in the target station's queue
 def allMedia(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
 	return json.dumps([mediaItem.jsondata for index, mediaItem in enumerate(stationList[stationid].queue)]), 201
 
 @app.route('/api/<int:stationid>/<int:mediaid>/remove', methods=['GET'])
-#Remove the media with media id from the target station's queue if it exists
 def removeMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
@@ -100,7 +92,6 @@ def removeMedia(stationid, mediaid):
 	return jsonify({'status':'success'}), 201
 
 @app.route('/api/<int:stationid>/destroy', methods=['GET'])
-#Destroys the target station (deactivate it)
 def destroyStation(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
