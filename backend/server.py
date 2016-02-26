@@ -69,7 +69,7 @@ def addMedia(stationid):
 def nextMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
-	index = next((i for i, item in enumerate(stationList[stationid].queue) if str(item.jsondata['id']) == str(mediaid)), -1)
+	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.jsondata['id'] == mediaid), -1)
 	if index == -1:
 		return jsonify({'err': 'media with given id not found'}), 201
 	if index + 1 >= len(stationList[stationid].queue):
