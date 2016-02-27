@@ -204,10 +204,12 @@ def client_leave_chat_station(client, stationid):
 
 if __name__ == '__main__':
 	app.run(port=2000,debug=True)
+        '''
 	server = WebsocketServer(5000)
 	server.set_fn_new_client(new_client)
 	server.set_fn_client_left(client_left)
 	server.set_fn_message_received(message_received)
 	server.run_forever()
+        '''
 
 #End of Chat websocket implementation
