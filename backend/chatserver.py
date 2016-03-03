@@ -18,7 +18,6 @@ def new_client(client, server):
 
 #Just leave chat services
 def client_left(client, server):
-        server.send_message_to_all("ayy")
 	print("%d disconnected" % client['id'])
         for i in range(MAX_NUM_STATIONS):
                 client_leave_chat_station(client, i);
@@ -64,7 +63,7 @@ def message_received(client, server, message):
 #Put client into specific station
 def client_join_chat_station(client, stationid):
         if client in chat_station_users[stationid]:
-                printf("%d already in %d" % (client['id'], stationid));
+                print("%d already in %d" % (client['id'], stationid));
                 return
         print("%d joined %d" % (client['id'], stationid));
 	chat_station_users[stationid].append(client)

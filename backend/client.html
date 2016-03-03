@@ -1,0 +1,105 @@
+<html>
+<head>
+  <title>Simple client</title>
+
+  <script type="text/javascript">
+
+    var ws;
+    
+    function init() {
+
+      // Connect to Web Socket
+      ws = new WebSocket("ws://localhost:5000/");
+
+      // Set event handlers.
+      ws.onopen = function() {
+        output("onopen");
+      };
+      
+      ws.onmessage = function(e) {
+        // e.data contains received string.
+        output("onmessage: " + e.data);
+      };
+      
+      ws.onclose = function() {
+        output("onclose");
+      };
+
+      ws.onerror = function(e) {
+        output("onerror");
+        console.log(e)
+      };
+
+    }
+    // {"type" : "join" , "stationid" : 1}
+    function onSubmitSend() {
+	  var packet = {};
+	  packet.type = "send";
+	  packet.stationid = parseInt(document.getElementById("stationid").value);
+      packet.message = document.getElementById("message").value;
+	  //packet.message = "j"
+      //var stationid = document.getElementById("stationid");
+      // You can send message to the Web Socket using ws.send.
+      //ws.send('{ "type" : "join" , "stationid" : ' + stationid.value + ' , "message" : ' + '}');
+	  output("Send: " + "message");	  
+	  ws.send(JSON.stringify(packet));
+      
+      //input.value = "";
+      //input.focus();
+    }
+
+    function onSubmitJoin() {
+	  var packet = {};
+      packet.type = "join"
+	  var stationid = document.getElementById("joinstationid");
+	  packet.stationid = parseInt(stationid.value);
+      // You can send message to the Web Socket using ws.send.
+      ws.send(JSON.stringify(packet));
+      output("Join: " + stationid.value);
+      //input.value = "";
+      //input.focus();
+    }
+
+    function onSubmitLeave() {
+	  var packet = {};
+      packet.type = "leave"
+	  var stationid = document.getElementById("leavestationid");
+	  packet.stationid = parseInt(stationid.value);
+      // You can send message to the Web Socket using ws.send.
+      ws.send(JSON.stringify(packet));
+      output("Leave: " + stationid.value);
+    }
+    
+    function onCloseClick() {
+      ws.close();
+    }
+    
+    function output(str) {
+      var log = document.getElementById("log");
+      var escaped = str.replace(/&/, "&amp;").replace(/</, "&lt;").
+        replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
+      log.innerHTML = escaped + "<br>" + log.innerHTML;
+    }
+
+  </script>
+</head>
+<body onload="init();">
+  <form onsubmit="onSubmitSend(); return false;">
+    Type Send--- stationid: <input type="text" id="stationid">
+	message: <input type="text" id="message">
+    <input type="submit" value="Send">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <form onsubmit="onSubmitJoin(); return false;">
+    Type Join--- stationid: <input type="text" id="joinstationid">
+    <input type="submit" value="Send">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <form onsubmit="onSubmitLeave(); return false;">
+    Type Leave--- stationid: <input type="text" id="leavestationid">
+    <input type="submit" value="Send">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <div id="log"></div>
+</body>
+</html>
