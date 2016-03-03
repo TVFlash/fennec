@@ -1,0 +1,113 @@
+<html>
+<head>
+<title>Debug Client</title>
+
+<script type="text/javascript">
+
+var ws;
+
+function init() {
+	// Connect to Web Socket
+	ws = new WebSocket("ws://localhost:5000/");
+
+	// Set event handlers.
+	ws.onopen = function() {
+		output("#open websocket");
+	};
+
+	ws.onmessage = function(e) {
+		// e.data contains received string.
+		output("#receive: " + e.data);
+	};
+
+	ws.onclose = function() {
+		output("#close websocket");
+	};
+
+	ws.onerror = function(e) {
+		output("#error, check console");
+		console.log(e)
+	};
+}
+
+function onSubmitSend() {
+	var packet = {};
+	packet.type = "send";
+	packet.stationid = parseInt(document.getElementById("sendstationid").value);
+	packet.message = document.getElementById("message").value;
+	// You can send message to the Web Socket using ws.send.
+	var message = JSON.stringify(packet);
+	output("send: " + message);	  
+	ws.send(message);
+}
+
+function onSubmitJoin() {
+	var packet = {};
+	packet.type = "join";
+	var stationid = document.getElementById("joinstationid");
+	packet.stationid = parseInt(stationid.value);
+	// You can send message to the Web Socket using ws.send.
+	ws.send(JSON.stringify(packet));
+	output("join: " + stationid.value);
+}
+
+function onSubmitLeave() {
+	var packet = {};
+	packet.type = "leave";
+	var stationid = document.getElementById("leavestationid");
+	packet.stationid = parseInt(stationid.value);
+	// You can send message to the Web Socket using ws.send.
+	ws.send(JSON.stringify(packet));
+	output("leave: " + stationid.value);
+}
+
+function onOpenClick() {
+	ws.close();
+	init();
+}
+
+function onCloseClick() {
+	ws.close();
+}
+
+function runTests() {
+
+}
+
+function output(str) {
+	var log = document.getElementById("log");
+	var escaped = str.replace(/&/, "&amp;").replace(/</, "&lt;").replace(/>/, "&gt;").replace(/"/, "&quot;");
+	log.innerHTML = escaped + "<br>" + log.innerHTML;
+}
+</script>
+</head>
+<body onload="init();">
+	<form onsubmit="onSubmitSend(); return false;">
+		Send<br>
+		stationid: <input type="text" id="sendstationid">
+		message: <input type="text" id="message">
+		<input type="submit" value="Send">
+	</form>
+	<form onsubmit="onSubmitJoin(); return false;">
+		Join<br>
+		stationid: <input type="text" id="joinstationid">
+		<input type="submit" value="Send">
+	</form>
+	<form onsubmit="onSubmitLeave(); return false;">
+		Leave<br>
+		stationid: <input type="text" id="leavestationid">
+		<input type="submit" value="Send">
+	</form>
+	<button onclick="onOpenClick(); return false;">open connection</button>
+	<button onclick="onCloseClick(); return false;">close connection</button>
+	<hr />
+	<p>
+	Before running tests,
+	<li>Restart chatserver.py</li>
+	<li>Open three tabs/windows of client.html</li>
+	</p>
+	<button onclick="runTests(); return false;">run unit tests</button>
+	<hr />
+	<div id="log"></div>
+</body>
+</html>
