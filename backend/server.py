@@ -75,7 +75,8 @@ def addMedia(stationid):
 		'uri': request.json['uri'],
 		'thumbnail': request.json['thumbnail'],
 		'length': request.json['length'],
-		'addedBy': request.json['addedBy']
+		'addedBy': request.json['addedBy'],
+		'type': 'YouTube' if 'youtube' in request.json['uri'] else 'SoundCloud'
 	}
 	stationList[stationid].queue.append(media)
 	return jsonify({'result': 'Media added'}), 201

@@ -33,11 +33,11 @@ class ServerTestCase(unittest.TestCase):
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/100/add').data)['err'])
 		# Add - Test adding media
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/0/add', data=json.dumps(dict(
-			id = 0, uri = 'https://www.google.com/',
+			id = 0, uri = 'https://www.youtube.com/watch/?v=TMB6-YflpA4',
 			thumbnail = 'thumbnail_url_0', length = 300, addedBy ='George'
 		)), content_type = 'application/json').data)['result'])
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/0/add', data=json.dumps(dict(
-			id = 1, uri = 'https://www.yahoo.com/',
+			id = 1, uri = 'https://soundcloud.com/trishanicolezara/sugar-maroon-5',
 			thumbnail = 'thumbnail_url_1', length = 200, addedBy ='Tim'
 		)), content_type = 'application/json').data)['result'])
 		# Next - Test the error cases
@@ -50,7 +50,9 @@ class ServerTestCase(unittest.TestCase):
 		json_data = json.loads(self.test_app.get('/api/0').data)
 		self.assertEquals(len(json_data), 2)
 		self.assertEquals(json_data[0]['id'], 0)
+		self.assertEquals(json_data[0]['type'], 'YouTube')
 		self.assertEquals(json_data[1]['id'], 1)
+		self.assertEquals(json_data[1]['type'], 'SoundCloud')
 		# Remove - Test removal of first media
 		self.assertIsNotNone(json.loads(self.test_app.get('/api/0/0/remove').data)['status'])
 		# Remove - Make sure removal is successful
