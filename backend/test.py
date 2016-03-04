@@ -27,6 +27,15 @@ class ServerTestCase(unittest.TestCase):
 			self.test_app.get('/api/' + str(i) + '/destroy')
 		# Test creating single station
 		self.assertEquals(json.loads(self.test_app.post('/api/create').data)['stationId'], 0)
+		
+	def test_update_station(self):
+		self.assertIsNotNone(json.loads(self.test_app.post('/api/update/0', data=json.dumps(dict(
+			name = 'station_0',
+			color = '000000'
+		)), content_type = 'application/json').data)['result'])
+		station = json.loads(self.test_app.get('/api/0').data)
+		self.assertEquals(station['name'], 'station_0')
+		self.assertEquals(station['color'], '000000')
 				
 	def test_media(self):
 		# Add - Test the obvious error cases
@@ -48,17 +57,19 @@ class ServerTestCase(unittest.TestCase):
 		self.assertEquals(json.loads(self.test_app.get('/api/0/0/next').data)['id'], 1)
 		# All - Make sure both media are still in queue
 		json_data = json.loads(self.test_app.get('/api/0').data)
-		self.assertEquals(len(json_data), 2)
-		self.assertEquals(json_data[0]['id'], 0)
-		self.assertEquals(json_data[0]['type'], 'YouTube')
-		self.assertEquals(json_data[1]['id'], 1)
-		self.assertEquals(json_data[1]['type'], 'SoundCloud')
+		queue = json_data['queue']
+		self.assertEquals(len(queue), 2)
+		self.assertEquals(queue[0]['id'], 0)
+		self.assertEquals(queue[0]['type'], 'YouTube')
+		self.assertEquals(queue[1]['id'], 1)
+		self.assertEquals(queue[1]['type'], 'SoundCloud')
 		# Remove - Test removal of first media
 		self.assertIsNotNone(json.loads(self.test_app.get('/api/0/0/remove').data)['status'])
 		# Remove - Make sure removal is successful
 		json_data = json.loads(self.test_app.get('/api/0').data)
-		self.assertEquals(len(json_data), 1)
-		self.assertEquals(json_data[0]['id'], 1)
+		queue = json_data['queue']
+		self.assertEquals(len(queue), 1)
+		self.assertEquals(queue[0]['id'], 1)
 
 
 #====================================================================================

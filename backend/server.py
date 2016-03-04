@@ -12,13 +12,31 @@ app = Flask(__name__)
 
 class mediaObject:
 	def __init__(self):
-		self.jsondata = {}  # JSON representation of a media
+		self.id = -1            # Unique Id of the media object
+		self.uri = ''           # Url to the media
+		self.thumbnail = ''     # Url to the thumbnail image
+		self.length = 0         # Length of media in seconds
+		self.addedBy = ''       # Name of the publisher
+		self.type = ''          # YouTube or SoundCloud
 
 class stationObject:
 	def __init__(self):
-		self.id = -1         # -1 -> Inactive | 0+ -> Active
-		self.name = ''       # Station name
-		self.queue = []      # Holding a list of mediaObject
+		self.id = -1            # -1 -> Inactive | 0+ -> Active
+		self.name = ''          # Station name
+		self.color = ''         # Station color
+		self.queue = []         # Holding a list of mediaObject
+		
+		
+#====================================================================================
+#MARK: Classes
+#====================================================================================
+
+def encode_object(obj):
+	if isinstance(obj, stationObject):
+		return obj.__dict__
+	if isinstance(obj, mediaObject):
+		return obj.__dict__
+	return obj
 
 
 #====================================================================================
@@ -44,22 +62,33 @@ def addStation():
 		if stationList[i].id == -1:
 			stationList[i].id = stationId = i
 			stationList[i].name = str(i) if not request.json else request.json['name']
+			stationList[i].color = 'FFFFFF' if not request.json else request.json['color']
 			break
 	if stationId == -1:
 		return jsonify({'err': 'All stations are currently active'}), 201
 	return jsonify({'stationId': stationId}), 201
+	
+@app.route('/api/update/<int:stationid>', methods=['POST'])
+def updateStation(stationid):
+	if stationid < 0  or stationid > 99:
+		return jsonify({'err': 'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
+	if not request.json:
+		return jsonify({'err': 'Not JSON type'}), 201
+	if request.json['name']:
+		stationList[stationid].name = request.json['name']
+	if request.json['color']:
+		stationList[stationid].color = request.json['color']
+	return jsonify({'result': 'Station updated'})
 
 @app.route('/api/stations', methods=['GET'])
 def allStations():
-	def encode_stationObject(obj):
-	    if isinstance(obj, stationObject):
-	        return obj.__dict__
-	    return obj
 	activeStationList = []
 	for station in stationList:
 		if station.id != -1:
 			activeStationList.append(station)
-	return json.dumps(activeStationList, default=encode_stationObject), 201
+	return json.dumps(activeStationList, default=encode_object), 201
 
 @app.route('/api/<int:stationid>/add', methods=['POST'])
 def addMedia(stationid):
@@ -70,14 +99,12 @@ def addMedia(stationid):
 	if not request.json:
 		return jsonify({'err': 'Not JSON type'}), 201
 	media = mediaObject()
-	media.jsondata = {
-		'id' : request.json['id'],
-		'uri': request.json['uri'],
-		'thumbnail': request.json['thumbnail'],
-		'length': request.json['length'],
-		'addedBy': request.json['addedBy'],
-		'type': 'YouTube' if 'youtube' in request.json['uri'] else 'SoundCloud'
-	}
+	media.id = request.json['id']
+	media.uri = request.json['uri']
+	media.thumbnail = request.json['thumbnail']
+	media.length = request.json['length']
+	media.addedBy = request.json['addedBy']
+	media.type = 'YouTube' if 'youtube' in request.json['uri'] else 'SoundCloud'
 	stationList[stationid].queue.append(media)
 	return jsonify({'result': 'Media added'}), 201
 
@@ -87,12 +114,12 @@ def nextMedia(stationid, mediaid):
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
 	if stationList[stationid].id == -1:
 		return jsonify({'err': 'Station inactive'}), 201
-	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.jsondata['id'] == mediaid), -1)
+	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.id == mediaid), -1)
 	if index == -1:
 		return jsonify({'err': 'media with given id not found'}), 201
 	if index + 1 >= len(stationList[stationid].queue):
 		return jsonify({'err': 'no next media in queue'}), 201
-	return jsonify(stationList[stationid].queue[index + 1].jsondata), 201
+	return json.dumps(stationList[stationid].queue[index + 1], default=encode_object), 201
 
 @app.route('/api/<int:stationid>', methods=['GET'])
 def allMedia(stationid):
@@ -100,7 +127,7 @@ def allMedia(stationid):
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
 	if stationList[stationid].id == -1:
 		return jsonify({'err': 'Station inactive'}), 201
-	return json.dumps([mediaItem.jsondata for index, mediaItem in enumerate(stationList[stationid].queue)]), 201
+	return json.dumps(stationList[stationid], default=encode_object), 201
 
 @app.route('/api/<int:stationid>/<int:mediaid>/remove', methods=['GET'])
 def removeMedia(stationid, mediaid):
@@ -109,7 +136,7 @@ def removeMedia(stationid, mediaid):
 	if stationList[stationid].id == -1:
 		return jsonify({'err': 'Station inactive'}), 201
 	for index, mediaItem in enumerate(stationList[stationid].queue):
-		if mediaItem.jsondata['id'] == mediaid:
+		if mediaItem.id == mediaid:
 			stationList[stationid].queue.remove(mediaItem)
 	return jsonify({'status':'success'}), 201
 
@@ -122,6 +149,7 @@ def destroyStation(stationid):
 	station = stationList[stationid]
 	station.id = -1
 	station.name = ''
+	station.color = ''
 	del station.queue[:]
 	return jsonify({'status':'success'}), 201
 	
