@@ -17,6 +17,7 @@ class mediaObject:
 class stationObject:
 	def __init__(self):
 		self.id = -1         # -1 -> Inactive | 0+ -> Active
+		self.name = ''       # Station name
 		self.queue = []      # Holding a list of mediaObject
 
 
@@ -40,13 +41,25 @@ def index():
 def addStation():
 	stationId = -1
 	for i in range(len(stationList)):
-	    if stationList[i].id == -1:
-	        stationList[i].id = stationId = i
-	        break
+		if stationList[i].id == -1:
+			stationList[i].id = stationId = i
+			stationList[i].name = str(i) if not request.json else request.json['name']
+			break
 	if stationId == -1:
 		return jsonify({'err': 'All stations are currently active'}), 201
 	return jsonify({'stationId': stationId}), 201
 
+@app.route('/api/stations', methods=['GET'])
+def allStations():
+	def encode_stationObject(obj):
+	    if isinstance(obj, stationObject):
+	        return obj.__dict__
+	    return obj
+	activeStationList = []
+	for station in stationList:
+		if station.id != -1:
+			activeStationList.append(station)
+	return json.dumps(activeStationList, default=encode_stationObject), 201
 
 @app.route('/api/<int:stationid>/add', methods=['POST'])
 def addMedia(stationid):
@@ -97,6 +110,7 @@ def destroyStation(stationid):
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
 	station = stationList[stationid]
 	station.id = -1
+	station.name = ''
 	del station.queue[:]
 	return jsonify({'status':'success'}), 201
 	
