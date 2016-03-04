@@ -65,6 +65,8 @@ def allStations():
 def addMedia(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err': 'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
 	if not request.json:
 		return jsonify({'err': 'Not JSON type'}), 201
 	media = mediaObject()
@@ -82,6 +84,8 @@ def addMedia(stationid):
 def nextMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
 	index = next((i for i, item in enumerate(stationList[stationid].queue) if item.jsondata['id'] == mediaid), -1)
 	if index == -1:
 		return jsonify({'err': 'media with given id not found'}), 201
@@ -93,12 +97,16 @@ def nextMedia(stationid, mediaid):
 def allMedia(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
 	return json.dumps([mediaItem.jsondata for index, mediaItem in enumerate(stationList[stationid].queue)]), 201
 
 @app.route('/api/<int:stationid>/<int:mediaid>/remove', methods=['GET'])
 def removeMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
 	for index, mediaItem in enumerate(stationList[stationid].queue):
 		if mediaItem.jsondata['id'] == mediaid:
 			stationList[stationid].queue.remove(mediaItem)
@@ -108,6 +116,8 @@ def removeMedia(stationid, mediaid):
 def destroyStation(stationid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
+	if stationList[stationid].id == -1:
+		return jsonify({'err': 'Station inactive'}), 201
 	station = stationList[stationid]
 	station.id = -1
 	station.name = ''
