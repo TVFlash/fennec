@@ -148,11 +148,11 @@ def searchYouTube():
 				item[key] = value
 			item['videoId'] = item['id']['videoId']
 			if item['thumbnails']['high']:
-				item['thumbnailUrl'] = item['thumbnails']['high']['url']
+				item['thumbnail'] = item['thumbnails']['high']['url']
 			elif item['thumbnails']['medium']:
-				item['thumbnailUrl'] = item['thumbnails']['medium']['url']
+				item['thumbnail'] = item['thumbnails']['medium']['url']
 			else:
-				item['thumbnailUrl'] = item['thumbnails']['default']['url']
+				item['thumbnail'] = item['thumbnails']['default']['url']
 			item['videoUrl'] = 'https://www.youtube.com/watch?v=' + item['videoId']
 			del item['etag'], item['kind'], item['id'], item['snippet'], item['channelId'], item['liveBroadcastContent'], item['thumbnails']
 	return jsonify({'status':'success', 'items':items}), 201 
