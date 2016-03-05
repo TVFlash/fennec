@@ -233,7 +233,10 @@ def timer_func():
 			station.media_elapsed_time += 1
 		if station.media_elapsed_time == station.queue[0].length:
 			station.queue.pop(0)
-			station.media_elapsed_time = 0 if len(station.queue) > 0 else -1
+			if len(station.queue) > 0:
+				station.media_elapsed_time = 0
+			else:
+				destroyStation(station.id)
 	threading.Timer(1, timer_func).start()
 
 #====================================================================================
