@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 class mediaObject:
 	def __init__(self):
-		self.id = -1                  # Unique Id of the media object
+		self.id = '-1'                # Unique Id of the media object
 		self.uri = ''                 # Url to the media
 		self.thumbnail = ''           # Url to the thumbnail image
 		self.length = 0               # Length of media in seconds
@@ -101,7 +101,7 @@ def addMedia(stationid):
 	if not request.json:
 		return jsonify({'err': 'Not JSON type'}), 201
 	media = mediaObject()
-	media.id = request.json['id']
+	media.id = str(request.json['id'])
 	media.uri = request.json['uri']
 	media.thumbnail = request.json['thumbnail']
 	media.length = request.json['length']
@@ -112,7 +112,7 @@ def addMedia(stationid):
 		stationList[stationid].media_elapsed_time = 0
 	return jsonify({'result': 'Media added'}), 201
 
-@app.route('/api/<int:stationid>/<int:mediaid>/next', methods=['GET'])
+@app.route('/api/<int:stationid>/<string:mediaid>/next', methods=['GET'])
 def nextMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
@@ -133,7 +133,7 @@ def allMedia(stationid):
 		return jsonify({'err': 'Station inactive'}), 201
 	return json.dumps(stationList[stationid], default=encode_object), 201
 
-@app.route('/api/<int:stationid>/<int:mediaid>/remove', methods=['GET'])
+@app.route('/api/<int:stationid>/<string:mediaid>/remove', methods=['GET'])
 def removeMedia(stationid, mediaid):
 	if stationid < 0  or stationid > 99:
 		return jsonify({'err':'Please enter a station number between 0 and 99'}), 201
