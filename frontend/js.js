@@ -5,6 +5,7 @@ var searchQueueSC;
 var stationNum;
 var socket;
 var playlist = [];
+var host = "http://localhost:2000";
 
 var adjectives = ["angry","quick","fast","cute","adorable","tiny","ferocious","ugly","smart","dumb","long","spooky","moon", "fiery"]
 
@@ -13,9 +14,37 @@ var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabb
 
 $(document).ready(function (){
 	username = getCookie('username');
-	loadStationList();
 	while(username === "")
 		username = generateUsername();
+
+	document.cookie = 'username=' + username;
+	$("#user").text(username);
+	socket = new WebSocket("ws://localhost:5000/");
+	socket.onopen = function() {
+		console.log("WEBSOCKET OPEN")
+	};
+
+	socket.onmessage = function(e) {
+		// e.data contains received string.
+		addChatMessage($.parseJSON(e.data))
+	};
+
+	socket.onclose = function() {
+		console.log("#closed websocket");
+	};
+
+	socket.onerror = function(e) {
+		console.log("error" + e)
+	};
+	if(getQueryVariable("station") === 'null'){
+		browseView();
+	}
+	else if(getQueryVariable("station")){
+		loadStation(getQueryVariable("station"));
+	} else {
+		browseView();
+	}
+
 	document.cookie = 'username=' + username;
 	$("#user").text(username);
 	socket = new WebSocket("ws://localhost:5000/");
@@ -50,11 +79,11 @@ function addbox(num){
 		return;
 	}
 	if(num < 5){
-		$.post("http://localhost:2000/api/" + stationNum + "/add",searchQueueYT[num],function(data){
+		$.post(host + "/api/" + stationNum + "/add",searchQueueYT[num],function(data){
 				addToPlayBar(searchQueueYT[num]);
 		})
 	} else {
-		$.post("http://localhost:2000/api/" + stationNum + "/add",searchQueueSC[num-5],function(data){
+		$.post(host + "/api/" + stationNum + "/add",searchQueueSC[num-5],function(data){
 				addToPlayBar(searchQueueSC[num-5]);
 		})
 	}
@@ -67,6 +96,29 @@ function addbox(num){
 // 	document.cookie = 'username=' + username;
 // 	$("#user").text(username);
 // });
+
+
+function updateQueryStringParameter(uri, key, value) {
+  var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+  var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+  if (uri.match(re)) {
+    return uri.replace(re, '$1' + key + "=" + value + '$2');
+  }
+  else {
+    return uri + separator + key + "=" + value;
+  }
+}
+
+function getQueryVariable(variable)
+{
+       var query = window.location.search.substring(1);
+       var vars = query.split("&");
+       for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if(pair[0] == variable){return pair[1];}
+       }
+       return(false);
+}
 
 function sendChatMessage(string) {
 	var packet = {};
@@ -115,7 +167,7 @@ $('#searchBox').on("keypress", function (e) {
         e.preventDefault();
         emptySearchWindow();
 
-        $.get("http://localhost:2000/api/search/youtube",{q:$('#searchBox').val()}, function (data){
+        $.get(host + "/api/search/youtube",{q:$('#searchBox').val()}, function (data){
         		searchQueueYT = data.items;
         		for(var i = 0; i < 5; i++){
         			data.items[i].source = 0;
@@ -123,7 +175,7 @@ $('#searchBox').on("keypress", function (e) {
         			createYTSearchPreviewItem(data.items[i],i)
         		}
         	}, "json");
-        $.get("http://localhost:2000/api/search/soundcloud",{q:$('#searchBox').val()}, function (data){
+        $.get(host + "/api/search/soundcloud",{q:$('#searchBox').val()}, function (data){
         		searchQueueSC = data.items;
         		for(var i = 0; i < 5; i++){
         			data.items[i].source = 1;
@@ -178,18 +230,22 @@ function addToPlayBarFresh(item){
 
 function removePlayListItem(id){
 	console.log("Received remove for #" + id);
-	$.get("http://localhost:2000/api/" + stationNum + "/" + id + "/remove", {},function(data){
+	$.get(host + "/api/" + stationNum + "/" + id + "/remove", {},function(data){
 		console.log(data);
 	});
 }
 
 function loadStation(data){
 	stationNum = data;
-	$.get("http://localhost:2000/api/" + data, null, function(datas){
+	$.get(host + "/api/" + data, null, function(datas){
+		console.log(datas)
 		//receive array of all the media objects
 		datas = $.parseJSON(datas);
 		setStationColor(datas.color);
 		//stationNum = datas.stationid;
+		//location.href = updateQueryStringParameter(location.href, "station", data);
+		window.history.pushState(location.href, "Fennec Station " + data, "?station="+data);
+		//updateQueryStringParameter(location.href, "station", data)
 		stationView();
 		joinChat();
 		$('#leftBar').empty();
@@ -197,13 +253,10 @@ function loadStation(data){
 		$.each(datas.queue, function(item){
 			addToPlayBarFresh(item);
 		})
-
-		console.log(datas);
 	});
 }
 
 function setStationColor(color){
-	console.log(color);
 	color = "#" + color;
 	$('header').css('background-color', color);
 	$('footer').css('background-color', color)
@@ -220,6 +273,7 @@ function stationView(){
 
 function browseView(){
 	setStationColor("008ae6");
+	window.history.pushState(location.href,"Fennec Browse", updateQueryStringParameter(location.href, "station", null));
 	loadStationList();
 	ownerName = null;
 	stationNum = null;
@@ -232,16 +286,21 @@ function browseView(){
 }
 
 function loadStationList(){
-	console.log("swag")
-	$.get("http://localhost:2000/api/stations", {},function(data){
-		console.log(data);
+	$('#stationContainer').empty();
+	$.get(host + "/api/stations", {},function(data){
+		var i = 0;
+		var len = data.length;
+		for(var j = 0; j < len; j++){
+			var key = j;
+			createStationBox(data[key]);
+
+		}
 	}, "json");
 }
 
 function createStationBox(item){
-	console.log(item);
-	var box = "<div id='stationBox' style='background-color: #" + item.color + "' onmouseup='loadStation(" + item.id + ")'><h2>" + item.name + "</h2></div>";
-	$('#stationContainer').append(box)
+	var box = "<div class='stationBox' style='background-color: #" + item.color + "' onmouseup='loadStation(" + item.id + ")'>" + item.name + "</div>";
+	$('#stationContainer').append(box);
 }
 
 $('#createStation').on("click", function(e) {
@@ -263,17 +322,27 @@ $('#create').on("click", function(e) {
 
 	var pack = {
 		'name': stationName,
-		'color': stationColor.substring(1, 8),
-		'owner': username,
-		'visible': $("#stationVisible").val()
+		'color': stationColor
 	};
 
 	console.log(pack);
 
-	$.post("http://localhost:2000/api/create", pack, function(data) {
-		console.log(data);
-		loadStation(data.stationId)
-	}, "json");
+//'visible': $("#stationVisible").val()
+
+	$.ajax({
+		method: "POST",
+		url: host + "/api/create",
+		data: JSON.stringify({
+			'name': stationName,
+			'color': stationColor
+		}),
+		contentType: "application/json"
+	}).done(function(data){
+		loadStation(data.stationId);
+	})
+	// $.post("http://localhost:2000/api/create", pack, function(data) {
+	// 	loadStation(data.stationId)
+	// }, "json");
 })
 
 $('#refreshStations').on("click", function(e){
