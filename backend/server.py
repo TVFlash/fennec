@@ -63,8 +63,13 @@ def addStation():
 	for i in range(len(stationList)):
 		if stationList[i].id == -1:
 			stationList[i].id = stationId = i
-			stationList[i].name = str(i) if not request.json else request.json['name']
-			stationList[i].color = 'FFFFFF' if not request.json else request.json['color']
+			stationList[i].name = str(i)
+			stationList[i].color = 'FFFFFF'
+			if request.json:
+				if request.json['name']:
+					stationList[i].name = request.json['name']
+				if request.json['color']:
+					stationList[i].color = request.json['color']
 			break
 	if stationId == -1:
 		return jsonify({'err': 'All stations are currently active'}), 201
