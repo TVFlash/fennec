@@ -27,6 +27,31 @@ Request Type: POST
 
 Description: Creates a station by going through the current 100 stations. The server would activate a station if it is not currently in use and return its id.
 
+Example Request - HTTP Body Data: 
+```
+{
+	"name": "Mitch\'s Station",
+	"color": "FFFFFF",
+}
+```
+> It is optional to post the JSON object. If it is not found in the HTTP Body, then the server defaults the station id as the name & "FFFFFF" as the color.
+
+###Update a station
+
+Endpoint: /api/update/<int:stationid>
+
+Request Type: POST
+
+Description: Updates the name ***and/or*** the color of a station
+
+Example Request - HTTP Body Data: 
+```
+{
+	"name": "Mitch\'s Station",
+	"color": "FFFFFF",
+}
+```
+
 ###Add media to a station
 
 Endpoint: /api/(int:stationid)/add
@@ -38,7 +63,7 @@ Description: Adds the given media specified in the HTTP Body to the station's qu
 Example Request - HTTP Body Data: 
 ```
 {
-  "id": 0,
+	"id": 0,
 	"uri": "testuri",
 	"thumbnail": "testtn",
 	"length": "testl",
