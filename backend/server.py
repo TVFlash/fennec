@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, url_for
 from websocket_server import WebsocketServer
 import requests
 import json
+import threading
 
 app = Flask(__name__)
 
@@ -12,23 +13,24 @@ app = Flask(__name__)
 
 class mediaObject:
 	def __init__(self):
-		self.id = -1            # Unique Id of the media object
-		self.uri = ''           # Url to the media
-		self.thumbnail = ''     # Url to the thumbnail image
-		self.length = 0         # Length of media in seconds
-		self.addedBy = ''       # Name of the publisher
-		self.type = ''          # YouTube or SoundCloud
+		self.id = -1                  # Unique Id of the media object
+		self.uri = ''                 # Url to the media
+		self.thumbnail = ''           # Url to the thumbnail image
+		self.length = 0               # Length of media in seconds
+		self.addedBy = ''             # Name of the publisher
+		self.type = ''                # YouTube or SoundCloud
 
 class stationObject:
 	def __init__(self):
-		self.id = -1            # -1 -> Inactive | 0+ -> Active
-		self.name = ''          # Station name
-		self.color = ''         # Station color
-		self.queue = []         # Holding a list of mediaObject
+		self.id = -1                  # -1 -> Inactive | 0+ -> Active
+		self.name = ''                # Station name
+		self.color = ''               # Station color
+		self.media_elapsed_time = -1  # Elapsed time of current media in seconds
+		self.queue = []               # Holding a list of mediaObject
 		
 		
 #====================================================================================
-#MARK: Classes
+#MARK: Encoder
 #====================================================================================
 
 def encode_object(obj):
@@ -40,7 +42,7 @@ def encode_object(obj):
 
 
 #====================================================================================
-#MARK: Constants
+#MARK: Global variables
 #====================================================================================
 
 MAX_NUM_STATIONS = 100
@@ -106,6 +108,8 @@ def addMedia(stationid):
 	media.addedBy = request.json['addedBy']
 	media.type = 'YouTube' if 'youtube' in request.json['uri'] else 'SoundCloud'
 	stationList[stationid].queue.append(media)
+	if len(stationList[stationid].queue) == 1:
+		stationList[stationid].media_elapsed_time = 0
 	return jsonify({'result': 'Media added'}), 201
 
 @app.route('/api/<int:stationid>/<int:mediaid>/next', methods=['GET'])
@@ -138,6 +142,8 @@ def removeMedia(stationid, mediaid):
 	for index, mediaItem in enumerate(stationList[stationid].queue):
 		if mediaItem.id == mediaid:
 			stationList[stationid].queue.remove(mediaItem)
+			if index == 0:
+				stationList[stationid].media_elapsed_time = 0
 	return jsonify({'status':'success'}), 201
 
 @app.route('/api/<int:stationid>/destroy', methods=['GET'])
@@ -150,6 +156,7 @@ def destroyStation(stationid):
 	station.id = -1
 	station.name = ''
 	station.color = ''
+	station.media_elapsed_time = 0
 	del station.queue[:]
 	return jsonify({'status':'success'}), 201
 	
@@ -210,8 +217,31 @@ def searchSoundCloud():
 			item['uploader'] = item['user']['username']
 			del item['user'], item['user_favorite'], item['user_id'], item['user_playback_count'], item['video_url'], item['waveform_url'], item['state'], item['stream_url'], item['streamable'], item['tag_list'], item['track_type'], item['uri'], item['sharing'], item['reposts_count'], item['release_year'], item['release_month'], item['release_day'], item['release'], item['purchase_url'], item['purchase_title'], item['permalink'], item['permalink_url'], item['playback_count'], item['license'], item['likes_count'], item['last_modified'], item['label_name'], item['label_id'], item['kind'], item['key_signature'], item['isrc'], item['id'], item['original_format'], item['original_content_size'], item['genre'], item['favoritings_count'], item['embeddable_by'], item['downloadable'], item['download_url'], item['download_count'], item['created_at'], item['commentable'], item['comment_count'], item['bpm'], item['attachments_uri'], item['artwork_url']
 	return jsonify({'status':'success', 'items':json_obj}), 201
+	
+
+#====================================================================================
+#MARK: Timer
+#====================================================================================
+	
+def timer_func():
+	for station in stationList:
+		if station.id == -1:
+			continue
+		if station.media_elapsed_time == -1:
+			continue
+		elif station.media_elapsed_time != -1:
+			station.media_elapsed_time += 1
+		if station.media_elapsed_time == station.queue[0].length:
+			station.queue.pop(0)
+			station.media_elapsed_time = 0 if len(station.queue) > 0 else -1
+	threading.Timer(1, timer_func).start()
+
+#====================================================================================
+#MARK: Main
+#====================================================================================
+
+timer_func()
 
 if __name__ == '__main__':
 	app.run(port=2000,debug=True)
 
-#End of Chat websocket implementation
