@@ -4,19 +4,42 @@ var searchQueueYT;
 var searchQueueSC;
 var stationNum;
 var socket;
+var playlist = [];
 
-var adjectives = ["angry","quick","fast","cute","adorable","tiny","ferocious","ugly","smart","dumb","long","spooky","moon"]
+var adjectives = ["angry","quick","fast","cute","adorable","tiny","ferocious","ugly","smart","dumb","long","spooky","moon", "fiery"]
 
 
-var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim"];
+var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken"];
 
 $(document).ready(function (){
-	username = getCookie('username')
+	username = getCookie('username');
+	loadStationList();
 	while(username === "")
-		username = prompt("Enter a username", generateUsername());
+		username = generateUsername();
 	document.cookie = 'username=' + username;
 	$("#user").text(username);
+	socket = new WebSocket("ws://localhost:5000/");
+	socket.onopen = function() {
+		console.log("WEBSOCKET OPEN")
+	};
+
+	socket.onmessage = function(e) {
+		// e.data contains received string.
+		addChatMessage($.parseJSON(e.data))
+	};
+
+	socket.onclose = function() {
+		console.log("#close websocket");
+	};
+
+	socket.onerror = function(e) {
+		console.log("error" + e)
+	};
 })
+
+function addChatMessage(data){
+	$('#chatArea').prepend("<p>" + data.client + ": " + data.message + "</p>")
+}
 
 function generateUsername(){
 	return adjectives[Math.floor(Math.random() * adjectives.length)] + animals[Math.floor(Math.random() * animals.length)]
@@ -45,6 +68,32 @@ function addbox(num){
 // 	$("#user").text(username);
 // });
 
+function sendChatMessage(string) {
+	var packet = {};
+	packet.type = "send";
+	packet.stationid = stationNum;
+	packet.message = string;
+	packet.owner = username;
+	// You can send message to the Web Socket using ws.send.
+	var message = JSON.stringify(packet);
+	socket.send(message);
+}
+
+function joinChat() {
+	var packet = {};
+	packet.type = "join";
+	packet.stationid = parseInt(stationNum);
+	// You can send message to the Web Socket using ws.send.
+	socket.send(JSON.stringify(packet));
+}
+
+function leaveChat() {
+	var packet = {};
+	packet.type = "leave";
+	packet.stationid = stationNum;
+	// You can send message to the Web Socket using ws.send.
+	socket.send(JSON.stringify(packet));
+}
 
 //Lifted from W3Schools
 function getCookie(cname) {
@@ -67,16 +116,19 @@ $('#searchBox').on("keypress", function (e) {
         emptySearchWindow();
 
         $.get("http://localhost:2000/api/search/youtube",{q:$('#searchBox').val()}, function (data){
-        	console.log(data)
         		searchQueueYT = data.items;
         		for(var i = 0; i < 5; i++){
+        			data.items[i].source = 0;
+        			data.items[i].uniqueId = data.items[i].videoId;
         			createYTSearchPreviewItem(data.items[i],i)
         		}
         	}, "json");
         $.get("http://localhost:2000/api/search/soundcloud",{q:$('#searchBox').val()}, function (data){
         		searchQueueSC = data.items;
         		for(var i = 0; i < 5; i++){
-        			createSCSearchPreviewItem(data.items[i],i)
+        			data.items[i].source = 1;
+        			data.items[i].uniqueId = data.items[i].trackId;
+        			createSCSearchPreviewItem(data.items[i],i);
         		}
         	}, "json");
     }
@@ -87,7 +139,7 @@ function emptySearchWindow(){
 }
 
 function createYTSearchPreviewItem(datum,num){
-	var preview = "<a onclick='addbox(" + num + ")'><div class='previewBox'><img src='" + datum.thumbnailUrl + "' /><h1>" + datum.title + "</h1><p>" + datum.channelTitle + "</p></div></a>";
+	var preview = "<a onclick='addbox(" + num + ")'><div class='previewBox'><img src='" + datum.thumbnail + "' /><h1>" + datum.title + "</h1><p>" + datum.channelTitle + "</p></div></a>";
 
 
 	$('#searchWindow').append(preview)
@@ -103,42 +155,71 @@ function createSCSearchPreviewItem(datum, num){
 }
 
 function addToPlayBar(item, num){
-	var preview = "<div class='playlistBox' onclick='remove()'><img src='" + item.thumbnailUrl + "' /><h1>" + item.title + "</h1><p>" + item.channelTitle + "</p></div>";
+	console.log(item);
+	var preview = "<div class='playlistBox' onclick='removePlayListItem(\"" + item.uniqueId + "\")'><img src='" + item.thumbnail + "' /><h1>" + item.title + "</h1><p>" + item.channelTitle + "</p></div>";
+
 	$('#leftBar').append(preview);
 }
 
-function loadStation(data){
-	$.get("http://localhost:2000/api/" + data, null, function(data){
-		//receive array of all the media objects
-		setStationColor(data.hex);
-		ownerName = data.owner;
-		stationView();
-		$('#leftBar').empty();
-		var num = 0;
-		$.each(data.queue, function(item){
-			addToPlayBar(item);
-		})
+function addToPlayBarFresh(item){
+	console.log(item);
+	if(item.videoUrl === null){
+		item.source = 1;
+		item.uniqueId = videoId;
+	} else {
+		item.source = 0;
+		item.uniqueId = trackId;
+	}
+	var preview = "<div class='playlistBox' onclick='removePlayListItem(\"" + item.uniqueId + "\")'><img src='" + item.thumbnail + "' /><h1>" + item.title + "</h1><p>" + item.channelTitle + "</p></div>";
+	playlist.push(item);
+	$('#leftBar').append(preview);
+}
 
+
+function removePlayListItem(id){
+	console.log("Received remove for #" + id);
+	$.get("http://localhost:2000/api/" + stationNum + "/" + id + "/remove", {},function(data){
 		console.log(data);
 	});
 }
 
+function loadStation(data){
+	stationNum = data;
+	$.get("http://localhost:2000/api/" + data, null, function(datas){
+		//receive array of all the media objects
+		datas = $.parseJSON(datas);
+		setStationColor(datas.color);
+		//stationNum = datas.stationid;
+		stationView();
+		joinChat();
+		$('#leftBar').empty();
+		var num = 0;
+		$.each(datas.queue, function(item){
+			addToPlayBarFresh(item);
+		})
+
+		console.log(datas);
+	});
+}
+
 function setStationColor(color){
-	console.log('testing');
+	console.log(color);
+	color = "#" + color;
 	$('header').css('background-color', color);
 	$('footer').css('background-color', color)
 }
 
 function stationView(){
+	playlist = [];
 	$('#leftBar').show();
 	$('#chatBar').show();
 	$('#stations').hide();
 	$('#content').show();
 	$('#stationCreator').hide();
-	socket = new WebSocket("ws://localhost:5000");
 }
 
 function browseView(){
+	setStationColor("008ae6");
 	loadStationList();
 	ownerName = null;
 	stationNum = null;
@@ -147,11 +228,20 @@ function browseView(){
 	$('#stations').show();
 	$('#content').hide();
 	$('#stationCreator').hide();
-	socket.close();
+	leaveChat();
 }
 
 function loadStationList(){
-	console.log("LOADSTATIONS: DO ME");
+	console.log("swag")
+	$.get("http://localhost:2000/api/stations", {},function(data){
+		console.log(data);
+	}, "json");
+}
+
+function createStationBox(item){
+	console.log(item);
+	var box = "<div id='stationBox' style='background-color: #" + item.color + "' onmouseup='loadStation(" + item.id + ")'><h2>" + item.name + "</h2></div>";
+	$('#stationContainer').append(box)
 }
 
 $('#createStation').on("click", function(e) {
@@ -165,18 +255,23 @@ $('#cancelCreate').on("click", function(e) {
 $('#create').on("click", function(e) {
 	var stationName = $('#stationName').val();
 	var stationColor = $('#stationColor').val();
+	stationColor = stationColor.substring(1,8);
+	console.log(stationColor);
 
 	if(stationName === "" || stationColor === "")
 		return;
 
-	$.post("http://localhost:2000/api/create", {
-		title: stationName,
-		color: stationColor,
-		owner: username,
-		visible: $("#stationVisible").val()
-	}, function(data) {
-		// console.log(data)
-		stationNum = data.stationId;
+	var pack = {
+		'name': stationName,
+		'color': stationColor.substring(1, 8),
+		'owner': username,
+		'visible': $("#stationVisible").val()
+	};
+
+	console.log(pack);
+
+	$.post("http://localhost:2000/api/create", pack, function(data) {
+		console.log(data);
 		loadStation(data.stationId)
 	}, "json");
 })
@@ -191,9 +286,8 @@ $('#logo').on("click", function(e) {
 
 $('#chatBarInput').on("keypress", function(e){
 	if(e.keyCode == 13 && $('#chatBarInput').val() !== ""){
-		$('#chatArea').prepend("<p>" + $('#chatBarInput').val() + "</p>");
+		sendChatMessage($('#chatBarInput').val());
 		$('#chatBarInput').val("");
-
 
 	}
 })
