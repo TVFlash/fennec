@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, url_for
 from websocket_server import WebsocketServer
 import requests
 import json
+import isodate
 import threading
 
 app = Flask(__name__)
@@ -181,6 +182,7 @@ def searchYouTube():
 	response = requests.get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&order=relevance&q=' + q + '&type=video&videoDefinition=any&key=AIzaSyASsdIg2A2eb-W9UlfOx4sIVRLZ2y1h63c')
 	json_obj = response.json()
 	items = json_obj['items']
+	videoIdArray = []
 	d = request.args.get('debug')
 	if d and d != 'true' and d != 'false':
 		return jsonify({'status':'failure', 'description':'argument \'d\' should be \'true\' or \'false\''}), 201
@@ -189,6 +191,7 @@ def searchYouTube():
 			for key, value in item['snippet'].items():
 				item[key] = value
 			item['videoId'] = item['id']['videoId']
+			videoIdArray.append(item['videoId'])
 			if item['thumbnails']['high']:
 				item['thumbnail'] = item['thumbnails']['high']['url']
 			elif item['thumbnails']['medium']:
@@ -197,6 +200,12 @@ def searchYouTube():
 				item['thumbnail'] = item['thumbnails']['default']['url']
 			item['videoUrl'] = 'https://www.youtube.com/watch?v=' + item['videoId']
 			del item['etag'], item['kind'], item['id'], item['snippet'], item['channelId'], item['liveBroadcastContent'], item['thumbnails']
+	response = requests.get('https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + ','.join(videoIdArray) + '&key=AIzaSyASsdIg2A2eb-W9UlfOx4sIVRLZ2y1h63c')
+	json_obj = response.json()
+	duration_items = json_obj['items']
+	if not d or d == 'false':
+		for index, item in enumerate(duration_items):
+			items[index]['duration'] = int(isodate.parse_duration(item['contentDetails']['duration']).total_seconds())
 	return jsonify({'status':'success', 'items':items}), 201 
 
 @app.route('/api/search/soundcloud', methods=['GET'])

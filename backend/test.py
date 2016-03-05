@@ -43,11 +43,11 @@ class ServerTestCase(unittest.TestCase):
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/100/add').data)['err'])
 		# Add - Test adding media
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/0/add', data=json.dumps(dict(
-			id = '0', uri = 'https://www.youtube.com/watch/?v=TMB6-YflpA4',
+			id = '0', uri = 'https://www.youtube.com/watch/?v=TMB6-YflpA4', title = 'handwritten past',
 			thumbnail = 'thumbnail_url_0', length = 300, addedBy ='George'
 		)), content_type = 'application/json').data)['result'])
 		self.assertIsNotNone(json.loads(self.test_app.post('/api/0/add', data=json.dumps(dict(
-			id = '1', uri = 'https://soundcloud.com/trishanicolezara/sugar-maroon-5',
+			id = '1', uri = 'https://soundcloud.com/trishanicolezara/sugar-maroon-5', title = 'sugar',
 			thumbnail = 'thumbnail_url_1', length = 200, addedBy ='Tim'
 		)), content_type = 'application/json').data)['result'])
 		# Next - Test the error cases
