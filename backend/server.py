@@ -17,6 +17,7 @@ class mediaObject:
 		self.uri = ''                 # Url to the media
 		self.thumbnail = ''           # Url to the thumbnail image
 		self.length = 0               # Length of media in seconds
+		self.title = ''               # Title of the media item
 		self.addedBy = ''             # Name of the publisher
 		self.type = ''                # YouTube or SoundCloud
 
@@ -108,6 +109,7 @@ def addMedia(stationid):
 	media = mediaObject()
 	media.id = str(request.json['id'])
 	media.uri = request.json['uri']
+	media.title = request.json['title']
 	media.thumbnail = request.json['thumbnail']
 	media.length = request.json['length']
 	media.addedBy = request.json['addedBy']
