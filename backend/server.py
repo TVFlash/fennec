@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, url_for
+from flask import Flask, jsonify, request, url_for, send_from_directory
 from websocket_server import WebsocketServer
 import requests
 import json
@@ -251,5 +251,6 @@ def timer_func():
 timer_func()
 
 if __name__ == '__main__':
-	app.run(port=2000,debug=True)
+#	app.run(port=2000,debug=True)
+	app.run(host='0.0.0.0',port=2000,debug=True);
 
