@@ -6,11 +6,17 @@ var stationNum;
 var socket;
 var playlist = [];
 var host = "http://localhost:2000";
+var current;
+var time_remaining;
+var time_passed;
+var moveTime;
+var pollStation;
+var videos_watched = 0;
 
-var adjectives = ["angry","quick","fast","cute","adorable","tiny","ferocious","ugly","smart","dumb","long","spooky","moon", "fiery"]
+var adjectives = ["Angry","Quick","Fast","Cute","Adorable","Tiny","Ferocious","Ugly","Smart","Dumb","Long","Spooky","Moon", "Fiery", "Chubby", "Esoteric", "Wild", "Calm", "Chill"];
 
 
-var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken"];
+var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture"];
 
 $(document).ready(function (){
 	username = getCookie('username');
@@ -36,20 +42,27 @@ $(document).ready(function (){
 	socket.onerror = function(e) {
 		console.log("error" + e)
 	};
-	if(getQueryVariable("station") === 'null'){
-		browseView();
-	}
-	else if(getQueryVariable("station")){
-		loadStation(getQueryVariable("station"));
-	} else {
-		browseView();
-	}
+	// if(getQueryVariable("station") === 'null'){
+	// 	browseView();
+	// }
+	// else if(getQueryVariable("station")){
+	// 	loadStation(getQueryVariable("station"));
+	// } else {
+	// 	browseView();
+	// }
 
 	document.cookie = 'username=' + username;
 	$("#user").text(username);
 	socket = new WebSocket("ws://localhost:5000/");
 	socket.onopen = function() {
-		console.log("WEBSOCKET OPEN")
+		if(getQueryVariable("station") === 'null'){
+			browseView();
+		}
+		else if(getQueryVariable("station")){
+			loadStation(getQueryVariable("station"));
+		} else {
+			browseView();
+		}
 	};
 
 	socket.onmessage = function(e) {
@@ -62,9 +75,11 @@ $(document).ready(function (){
 	};
 
 	socket.onerror = function(e) {
-		console.log("error" + e)
+		console.log("error" + e);
 	};
 })
+
+
 
 function addChatMessage(data){
 	$('#chatArea').prepend("<p>" + data.client + ": " + data.message + "</p>")
@@ -79,13 +94,50 @@ function addbox(num){
 		return;
 	}
 	if(num < 5){
-		$.post(host + "/api/" + stationNum + "/add",searchQueueYT[num],function(data){
-				addToPlayBar(searchQueueYT[num]);
+		var pack = {};
+
+		pack.id = searchQueueYT[num].uniqueId;
+		pack.thumbnail = searchQueueYT[num].thumbnail;
+		pack.uri = searchQueueYT[num].videoUrl;
+		pack.addedBy = searchQueueYT[num].channelTitle;
+		pack.title = searchQueueYT[num].title;
+		pack.length = searchQueueYT[num].duration;
+
+		$.ajax({
+			method: "POST",
+			url: host + "/api/" + stationNum + "/add",
+			data: JSON.stringify(pack),
+			contentType: "application/json"
+		}).done(function(data){
+			addToPlayBar(searchQueueYT[num]);
 		})
+
+		// $.post(host + "/api/" + stationNum + "/add",searchQueueYT[num],function(data){
+		// 		addToPlayBar(searchQueueYT[num]);
+		// })
 	} else {
-		$.post(host + "/api/" + stationNum + "/add",searchQueueSC[num-5],function(data){
-				addToPlayBar(searchQueueSC[num-5]);
+		var pack = {};
+
+		pack.id = searchQueueSC[num].trackId;
+		pack.thumbnail = searchQueueSC[num].thumbnail;
+		pack.uri = searchQueueSC[num].trackUrl;
+		pack.addedBy = searchQueueSC[num].uploader;
+		pack.length = searchQueueSC[num].duration / 1000; //Soundcloud uses MS, not S
+		pack.title = searchQueueSC[num].title;
+
+
+		$.ajax({
+			method: "POST",
+			url: host + "/api/" + stationNum + "/add",
+			data: JSON.stringify(pack),
+			contentType: "application/json"
+		}).done(function(data){
+			addToPlayBar(searchQueueSC[num]);
 		})
+
+		// $.post(host + "/api/" + stationNum + "/add",searchQueueSC[num-5],function(data){
+		// 		addToPlayBar(searchQueueSC[num-5]);
+		// })
 	}
 
 }
@@ -175,14 +227,14 @@ $('#searchBox').on("keypress", function (e) {
         			createYTSearchPreviewItem(data.items[i],i)
         		}
         	}, "json");
-        $.get(host + "/api/search/soundcloud",{q:$('#searchBox').val()}, function (data){
+        setTimeout($.get(host + "/api/search/soundcloud",{q:$('#searchBox').val()}, function (data){
         		searchQueueSC = data.items;
         		for(var i = 0; i < 5; i++){
         			data.items[i].source = 1;
         			data.items[i].uniqueId = data.items[i].trackId;
         			createSCSearchPreviewItem(data.items[i],i);
         		}
-        	}, "json");
+        	}, "json"),200);
     }
 });
 
@@ -194,7 +246,7 @@ function createYTSearchPreviewItem(datum,num){
 	var preview = "<a onclick='addbox(" + num + ")'><div class='previewBox'><img src='" + datum.thumbnail + "' /><h1>" + datum.title + "</h1><p>" + datum.channelTitle + "</p></div></a>";
 
 
-	$('#searchWindow').append(preview)
+	$('#searchWindow').append(preview);
 }
 
 function createSCSearchPreviewItem(datum, num){
@@ -214,16 +266,18 @@ function addToPlayBar(item, num){
 }
 
 function addToPlayBarFresh(item){
-	console.log(item);
-	if(item.videoUrl === null){
+	if(item.type === "SoundCloud"){
+		if(item.thumbnail === null)
+			item.thumbnail = "soundcloud.png";
 		item.source = 1;
-		item.uniqueId = videoId;
+		item.uniqueId = item.id;
 	} else {
 		item.source = 0;
-		item.uniqueId = trackId;
+		item.uniqueId = item.id;
 	}
-	var preview = "<div class='playlistBox' onclick='removePlayListItem(\"" + item.uniqueId + "\")'><img src='" + item.thumbnail + "' /><h1>" + item.title + "</h1><p>" + item.channelTitle + "</p></div>";
 	playlist.push(item);
+
+	var preview = "<div class='playlistBox' onclick='removePlayListItem(\"" + item.uniqueId + "\")'><img src='" + item.thumbnail + "' /><h1>" + item.title + "</h1><p>" + item.addedBy + "</p></div>";
 	$('#leftBar').append(preview);
 }
 
@@ -240,20 +294,100 @@ function loadStation(data){
 	$.get(host + "/api/" + data, null, function(datas){
 		console.log(datas)
 		//receive array of all the media objects
-		datas = $.parseJSON(datas);
 		setStationColor(datas.color);
-		//stationNum = datas.stationid;
-		//location.href = updateQueryStringParameter(location.href, "station", data);
+		videos_watched = 0;
+		time_passed = datas.media_elapsed_time;
+		console.log("time: " + time_passed);
+		time_remaining = 0;
+		moveTime = setInterval(function(){
+			time_remaining--;
+			//console.log(time_remaining)
+		}, 1000);
+		pollStation = setInterval(function(){
+			if(time_remaining > 0)
+				refreshPlayList();
+		},3000);
+
 		window.history.pushState(location.href, "Fennec Station " + data, "?station="+data);
-		//updateQueryStringParameter(location.href, "station", data)
+
 		stationView();
 		joinChat();
+
+		refreshPlayListAndNext();
+	}, "json");
+}
+
+function refreshPlayList(){
+	$.get(host + "/api/" + stationNum, null, function(datas){
 		$('#leftBar').empty();
-		var num = 0;
-		$.each(datas.queue, function(item){
-			addToPlayBarFresh(item);
-		})
-	});
+		var i = 0;
+		var len = datas.queue.length;
+		for(var j = 0; j < len; j++){
+			var key = j;
+			addToPlayBarFresh(datas.queue[key]);
+		}
+		return;
+	},"json");
+}
+
+function refreshPlayListAndNext(){
+	$.get(host + "/api/" + stationNum, null, function(datas){
+		$('#leftBar').empty();
+		console.log(datas)
+		var i = 0;
+		var len = datas.queue.length;
+		for(var j = 0; j < len; j++){
+			var key = j;
+			addToPlayBarFresh(datas.queue[key]);
+		}
+		var data = playlist[0];
+		console.log("DATA----------------------------")
+		console.log(data);
+		current = data.id;
+		var timeForVid = (data.length + 1 - time_passed);
+		console.log(timeForVid);
+		setTimeout(function(data){
+			refreshPlayListAndNext();
+		}, (data.length + 1 - time_passed) * 1000);
+		if(data.type == "YouTube"){
+			console.log("Starting at " + time_passed + " seconds")
+			time_remaining = data.length + 1;
+			if(videos_watched == 0){
+				loadYoutubeVideo(data.id,time_passed);
+			} else {
+				loadYoutubeVideo(data.id,0);
+				time_passed = 0;
+			}
+		} else if(data.type == "SoundCloud"){
+			time_remaining = data.length;
+			if(videos_watched == 0){
+				loadSoundCloudTrack(data.id,time_passed);
+			} else {
+				loadSoundCloudTrack(data.id,0);
+				time_passed = 0;
+			}
+		} else {
+			$('#content').empty()
+			$('#content').append("there is nothing in the queue")
+		}
+		videos_watched++;
+		$.get(host + "/api/" + stationNum + "/" + playlist[0].id + "/next",{},function(data){
+
+		}, "json");
+	}, "json");
+}
+
+//<iframe width="100%" height="450" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/136074708&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true"></iframe>
+
+
+function loadSoundCloudTrack(url, time){
+	$('#content').empty();
+	$('#content').append('<iframe width="100%" height="600" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/' + url + '&amp;auto_play=true&amp;hide_related=false&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;visual=true#time=0:50"></iframe>');
+}
+
+function loadYoutubeVideo(url, time){
+	$('#content').empty();
+	$('#content').append('<iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + url + '?autoplay=1&start=' + time + '" frameborder="0" allowfullscreen></iframe>');
 }
 
 function setStationColor(color){
@@ -265,6 +399,7 @@ function setStationColor(color){
 function stationView(){
 	playlist = [];
 	$('#leftBar').show();
+	$('#chatArea').empty();
 	$('#chatBar').show();
 	$('#stations').hide();
 	$('#content').show();
@@ -272,6 +407,9 @@ function stationView(){
 }
 
 function browseView(){
+	$('#content').empty();
+	clearInterval(pollStation);
+	clearInterval(moveTime);
 	setStationColor("008ae6");
 	window.history.pushState(location.href,"Fennec Browse", updateQueryStringParameter(location.href, "station", null));
 	loadStationList();
@@ -320,12 +458,6 @@ $('#create').on("click", function(e) {
 	if(stationName === "" || stationColor === "")
 		return;
 
-	var pack = {
-		'name': stationName,
-		'color': stationColor
-	};
-
-	console.log(pack);
 
 //'visible': $("#stationVisible").val()
 
