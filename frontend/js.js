@@ -64,19 +64,6 @@ $(document).ready(function (){
 			browseView();
 		}
 	};
-
-	socket.onmessage = function(e) {
-		// e.data contains received string.
-		addChatMessage($.parseJSON(e.data))
-	};
-
-	socket.onclose = function() {
-		console.log("#close websocket");
-	};
-
-	socket.onerror = function(e) {
-		console.log("error" + e);
-	};
 })
 
 
@@ -175,11 +162,12 @@ function getQueryVariable(variable)
 function sendChatMessage(string) {
 	var packet = {};
 	packet.type = "send";
-	packet.stationid = stationNum;
+	packet.stationid = parseInt(stationNum);
 	packet.message = string;
 	packet.owner = username;
 	// You can send message to the Web Socket using ws.send.
 	var message = JSON.stringify(packet);
+	console.log(message)
 	socket.send(message);
 }
 
@@ -259,7 +247,7 @@ function createSCSearchPreviewItem(datum, num){
 }
 
 function addToPlayBar(item, num){
-	console.log(item);
+	//console.log(item);
 	var preview = "<div class='playlistBox' onclick='removePlayListItem(\"" + item.uniqueId + "\")'><img src='" + item.thumbnail + "' /><h1>" + item.title + "</h1><p>" + item.channelTitle + "</p></div>";
 
 	$('#leftBar').append(preview);
@@ -283,21 +271,21 @@ function addToPlayBarFresh(item){
 
 
 function removePlayListItem(id){
-	console.log("Received remove for #" + id);
+	//console.log("Received remove for #" + id);
 	$.get(host + "/api/" + stationNum + "/" + id + "/remove", {},function(data){
-		console.log(data);
+	//	console.log(data);
 	});
 }
 
 function loadStation(data){
 	stationNum = data;
 	$.get(host + "/api/" + data, null, function(datas){
-		console.log(datas)
+		//console.log(datas)
 		//receive array of all the media objects
 		setStationColor(datas.color);
 		videos_watched = 0;
 		time_passed = datas.media_elapsed_time;
-		console.log("time: " + time_passed);
+		//console.log("time: " + time_passed);
 		time_remaining = 0;
 		moveTime = setInterval(function(){
 			time_remaining--;
@@ -333,7 +321,7 @@ function refreshPlayList(){
 function refreshPlayListAndNext(){
 	$.get(host + "/api/" + stationNum, null, function(datas){
 		$('#leftBar').empty();
-		console.log(datas)
+		//console.log(datas)
 		var i = 0;
 		var len = datas.queue.length;
 		for(var j = 0; j < len; j++){
@@ -341,11 +329,14 @@ function refreshPlayListAndNext(){
 			addToPlayBarFresh(datas.queue[key]);
 		}
 		var data = playlist[0];
-		console.log("DATA----------------------------")
-		console.log(data);
-		current = data.id;
+		//console.log("DATA----------------------------")
+		//console.log(data);
+		if (data == null){
+			setTimeout(function(){refreshPlayListAndNext()},1000);
+			return;
+		}
 		var timeForVid = (data.length + 1 - time_passed);
-		console.log(timeForVid);
+		//console.log(timeForVid);
 		setTimeout(function(data){
 			refreshPlayListAndNext();
 		}, (data.length + 1 - time_passed) * 1000);
@@ -452,21 +443,23 @@ $('#cancelCreate').on("click", function(e) {
 $('#create').on("click", function(e) {
 	var stationName = $('#stationName').val();
 	var stationColor = $('#stationColor').val();
+	var stationVisible = $('#stationVisible').val();
 	stationColor = stationColor.substring(1,8);
-	console.log(stationColor);
+//	console.log(stationColor);
 
 	if(stationName === "" || stationColor === "")
 		return;
 
 
 //'visible': $("#stationVisible").val()
-
+	console.log("GET VISIBILITY DONE");
 	$.ajax({
 		method: "POST",
 		url: host + "/api/create",
 		data: JSON.stringify({
 			'name': stationName,
-			'color': stationColor
+			'color': stationColor,
+			'visibility': stationVisible
 		}),
 		contentType: "application/json"
 	}).done(function(data){
