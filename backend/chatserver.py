@@ -15,6 +15,7 @@ currMedVote = 0 #number of skips for currently playing media
 #Just join chat services
 def new_client(client, server):
 	print("%d connected" % client['id'])
+        server.send_message(client, build_json(client, "hello world"));
         return
 
 #Just leave chat services
