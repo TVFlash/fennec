@@ -264,8 +264,9 @@ def timer_func():
 
 def client_left(client, server):
 	for station in stationList:
-		if station.clients has client:
-			delete the client
+		continue
+		#if station.clients has client:
+			#delete the client
 
 def message_received(client, server, message):
 	try:
