@@ -289,6 +289,7 @@ h3 {
 #stationContainer {
 	margin-top: 100px;
 	overflow: scroll;
+	height: 80%;
 }
 
 .stationBox {
@@ -298,9 +299,10 @@ h3 {
 	-moz-text-stroke-width: 1px;
 	-moz-text-stroke-color: black;
 	display: inline-block;
-	width: 100px;
+	font-size: 30px;
+	width: 200px;
 	padding-top: 15px;
-	height: 50px;
+	height: 100px;
 	margin: 20px;
 	background-color: white;
 	box-shadow: 0px -3px rgba(0,0,0,.2) inset;
