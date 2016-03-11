@@ -43,6 +43,7 @@ def message(msg): #function for sending messages to the IRC chat
 
 
 keep_trying = True #always stays True
+uservotes = {}
 if __name__ == '__main__':
     while keep_trying:
             print 'CONNECTING'
@@ -52,11 +53,10 @@ if __name__ == '__main__':
                     jdata = json.loads(data)
                     inline = jdata['message']
                     parts = inline.split(' ')
+                    if inline == '!song':
+                        message('Darude - Sandstorm')
                     if parts[0] == 'hello':
                         message('howdy')
-                    if len(parts) > 1:
-                        if parts[1] == 'there':
-                            print 'woohoo'
 
 
 

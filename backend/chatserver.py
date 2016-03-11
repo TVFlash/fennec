@@ -9,6 +9,8 @@ import json
 MAX_NUM_STATIONS = 100
 chat_station_users = [[] for i in range(MAX_NUM_STATIONS)] #chat_station_users[stationid] = list_of_users
 station_index = 0
+uservotes = [{} for i in range(MAX_NUM_STATIONS)] #list of kick votes for each user
+currMedVote = 0 #number of skips for currently playing media
 
 #Just join chat services
 def new_client(client, server):
@@ -51,6 +53,26 @@ def message_received(client, server, message):
         stationid = json_obj['stationid'];
 
 	if json_obj['type'] == 'send':
+                #check for commands
+                mess = json_obj['message']
+                parts = mess.split(' ')
+                if mess == '!skip':
+                    #check if currently playing song is same as before, if not reset count to 0
+                    #currMedVote += 1
+                    #if currMedVote > 5:
+                        #tell server to remove currently playing media
+                    pass
+                if len(parts) > 1:
+                    if parts[0] == '!kick':
+                        user = parts[1]
+                        if user not in uservotes[stationid]:
+                            uservotes[stationid][user] = 1
+                        else:
+                            uservotes[stationid][user] += 1
+                            if uservotes[stationid][user] > 5:
+                                #client_leave_chat_station(GET THE USER'S CLIENT ID, stationid)
+                                pass
+
 		#Send normal message
                 client_send_chat_station(client, stationid, json_obj['message']);
 	elif json_obj['type'] == 'join':
