@@ -28,6 +28,7 @@ class stationObject:
 		self.name = ''                # Station name
 		self.color = ''               # Station color
 		self.media_elapsed_time = -1  # Elapsed time of current media in seconds
+		self.clients = []             # List of websocket clients
 		self.queue = []               # Holding a list of mediaObject
 		
 		
@@ -165,6 +166,7 @@ def destroyStation(stationid):
 	station.name = ''
 	station.color = ''
 	station.media_elapsed_time = 0
+	del station.clients[:]
 	del station.queue[:]
 	return jsonify({'status':'success'}), 201
 	
@@ -247,13 +249,42 @@ def timer_func():
 			continue
 		elif station.media_elapsed_time != -1:
 			station.media_elapsed_time += 1
-		if station.media_elapsed_time == station.queue[0].length:
+		if station.media_elapsed_time >= station.queue[0].length:
 			station.queue.pop(0)
 			if len(station.queue) > 0:
 				station.media_elapsed_time = 0
 			else:
 				destroyStation(station.id)
 	threading.Timer(1, timer_func).start()
+
+
+#====================================================================================
+#MARK: WebSocket functions
+#====================================================================================
+
+def client_left(client, server):
+	for station in stationList:
+		continue
+		#if station.clients has client:
+			#delete the client
+
+def message_received(client, server, message):
+	try:
+		json_obj = json.loads(message)
+	except ValueError:
+		server.send_message(client, json.dumps({'err': 'Not JSON type'}))
+	if json_obj['type'] == 'connect':
+		station = stationList[json_obj['stationId']]
+		if station.id == -1:
+			server.send_message(client, json.dumps({'err': 'Inactive station'}))
+			return
+		station.clients.append(client)
+		server.send_message(client, json.dumps({'res': 'Success'}))
+		
+	
+def ws_destroyedStation():
+	server.send_message_to_all(json.dumps({''}))
+
 
 #====================================================================================
 #MARK: Main
@@ -262,6 +293,9 @@ def timer_func():
 timer_func()
 
 if __name__ == '__main__':
-#	app.run(port=2000,debug=True)
-	app.run(host='0.0.0.0',port=2000,debug=True);
+	app.run(host='0.0.0.0',port=2000,debug=True)
+	server = WebsocketServer(3000, "0.0.0.0")
+	server.set_fn_client_left(client_left)
+	server.set_fn_message_received(message_received)
+	server.run_forever()
 

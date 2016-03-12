@@ -1,5 +1,6 @@
 from websocket_server import WebsocketServer
 import json
+import requests
 #Chat Server
 #====================================================================================
 #MARK: WebSocket
@@ -9,10 +10,14 @@ import json
 MAX_NUM_STATIONS = 100
 chat_station_users = [[] for i in range(MAX_NUM_STATIONS)] #chat_station_users[stationid] = list_of_users
 station_index = 0
+uservotes = [{} for i in range(MAX_NUM_STATIONS)] #list of kick votes for each user
+currMedVote = 0 #number of skips for currently playing media
+currMedID = 0 
 
 #Just join chat services
 def new_client(client, server):
 	print("%d connected" % client['id'])
+        server.send_message(client, build_json(client, "hello world"));
         return
 
 #Just leave chat services
@@ -51,6 +56,41 @@ def message_received(client, server, message):
         stationid = json_obj['stationid'];
 
 	if json_obj['type'] == 'send':
+                #check for commands
+                mess = json_obj['message']
+                parts = mess.split(' ')
+                if mess == '!skip':
+                    print 'got a skip'
+                    url = 'http://localhost:2000/api/' + str(stationid)
+                    r = requests.get(url)
+                    print '**' + str(r.content) + '**'
+
+                    #check if currently playing song is same as before, if not reset count to 0
+                    #currMedVote += 1
+                    #if currMedVote > 5:
+                        #tell server to remove currently playing media
+                  #  print 'ended skip'
+                    pass
+                if len(parts) > 1:
+                    if parts[0] == '!kick':
+                  #      print 'got a kick'
+                        user = parts[1]
+                        if user not in uservotes[stationid]:
+                            uservotes[stationid][user] = [] 
+                            uservotes[stationid][user].append(client)
+                           # print 'adding a new one'
+                        else:
+                            if client not in uservotes[stationid][user]:
+                                uservotes[stationid][user].append(client)
+                           #     print 'adding to old'
+                                if len(uservotes[stationid][user]) * 2 > len(chat_station_users[stationid]):
+                  #                  print 'should be kicking now'
+                                    for cl in chat_station_users[stationid]:
+                                        print cl['id'], type(cl['id'])
+                                        if cl['id'] == int(user):
+                  #                          print 'found em'
+                                            client_leave_chat_station(cl, stationid)
+
 		#Send normal message
                 client_send_chat_station(client, stationid, json_obj['message']);
 	elif json_obj['type'] == 'join':
