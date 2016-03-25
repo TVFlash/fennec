@@ -5,7 +5,7 @@ var searchQueueSC;
 var stationNum;
 var socket;
 var playlist = [];
-var host = "http://localhost:2000";
+var host = "";
 var current;
 var time_remaining;
 var time_passed;
