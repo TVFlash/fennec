@@ -18,12 +18,12 @@ var received = 0;
 
 var adjectives = ["Angry","Quick","Fast","Cute","Adorable","Tiny","Ferocious","Ugly","Smart","Dumb","Long","Spooky","Moon", "Fiery", "Chubby", "Esoteric", "Wild", "Calm", "Chill", "Neato", "Rad", "Pickled", "Tubby", "Indecent", "Educated", "Metal", "Solid", "Liquid", "Gaseous"];
 
-
 var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture", "Moon"];
 
 $(document).ready(function (){
 	$("#user").text("Loading...");
 	socket = new WebSocket(wshost);
+
 	socket.onopen = function() {
 		if(getQueryVariable("station") === 'null'){
 			browseView();
@@ -67,14 +67,8 @@ $(document).ready(function (){
 
 })
 
-
-
 function addChatMessage(data){
 	$('#chatArea').prepend("<p>" + resolveUsername(data.client) + ": " + data.message + "</p>")
-}
-
-function generateUsername(){
-	return adjectives[Math.floor(Math.random() * adjectives.length)] + animals[Math.floor(Math.random() * animals.length)]
 }
 
 function resolveUsername(clientNum){
@@ -194,18 +188,6 @@ function leaveChat() {
 	socket.send(JSON.stringify(packet));
 }
 
-//Lifted from W3Schools
-function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-    }
-    return "";
-}
-
 $('#searchBox').on("keypress", function (e) {
 
     if (e.keyCode == 13) { //newline
@@ -239,7 +221,6 @@ function emptySearchWindow(){
 
 function createYTSearchPreviewItem(datum,num){
 	var preview = "<a onclick='addbox(" + num + ")'><div class='previewBox'><img src='" + datum.thumbnail + "' /><h1>" + datum.title + "</h1><p>" + datum.channelTitle + "</p></div></a>";
-
 
 	$('#searchWindow').append(preview);
 }
