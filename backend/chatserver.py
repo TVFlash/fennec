@@ -102,9 +102,11 @@ def message_received(client, server, message):
 	return
 
 def client_send_chat_station(client, stationid, message):
-	for c in chat_station_users[stationid]:
-		server.send_message(c, build_json(client, message));
-        return;
+	for station in chat_station_users:
+		for c in station:
+			if c['id'] != client['id']:
+				server.send_message(c, build_json(client, message));
+			return;
 
 #Put client into specific station
 def client_join_chat_station(client, stationid):
