@@ -6,6 +6,7 @@ var stationNum;
 var socket;
 var playlist = [];
 var host = "";
+var wshost = "http://moore14.cs.purdue.edu:5000/";
 var current;
 var time_remaining;
 var time_passed;
@@ -25,9 +26,16 @@ $(document).ready(function (){
 
 	document.cookie = 'username=' + username;
 	$("#user").text(username);
-	socket = new WebSocket("ws://localhost:5000/");
+	socket = new WebSocket(wshost);
 	socket.onopen = function() {
-		console.log("WEBSOCKET OPEN")
+		if(getQueryVariable("station") === 'null'){
+			browseView();
+		}
+		else if(getQueryVariable("station")){
+			loadStation(getQueryVariable("station"));
+		} else {
+			browseView();
+		}
 	};
 
 	socket.onmessage = function(e) {
@@ -53,17 +61,7 @@ $(document).ready(function (){
 
 	document.cookie = 'username=' + username;
 	$("#user").text(username);
-	socket = new WebSocket("ws://localhost:5000/");
-	socket.onopen = function() {
-		if(getQueryVariable("station") === 'null'){
-			browseView();
-		}
-		else if(getQueryVariable("station")){
-			loadStation(getQueryVariable("station"));
-		} else {
-			browseView();
-		}
-	};
+	
 })
 
 
