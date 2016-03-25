@@ -16,18 +16,13 @@ var pollStation;
 var videos_watched = 0;
 var received = 0;
 
-var adjectives = ["Angry","Quick","Fast","Cute","Adorable","Tiny","Ferocious","Ugly","Smart","Dumb","Long","Spooky","Moon", "Fiery", "Chubby", "Esoteric", "Wild", "Calm", "Chill", "Neato", "Rad", "Pickled", "Tubby", "Indecent", "Educated"];
+var adjectives = ["Angry","Quick","Fast","Cute","Adorable","Tiny","Ferocious","Ugly","Smart","Dumb","Long","Spooky","Moon", "Fiery", "Chubby", "Esoteric", "Wild", "Calm", "Chill", "Neato", "Rad", "Pickled", "Tubby", "Indecent", "Educated", "Metal", "Solid", "Liquid", "Gaseous"];
 
 
-var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture"];
+var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture", "Moon"];
 
 $(document).ready(function (){
-	username = getCookie('username');
-	while(username === "")
-		username = generateUsername();
-
-	document.cookie = 'username=' + username;
-	$("#user").text(username);
+	$("#user").text("Loading...");
 	socket = new WebSocket(wshost);
 	socket.onopen = function() {
 		if(getQueryVariable("station") === 'null'){
@@ -302,7 +297,7 @@ function loadStation(data){
 		pollStation = setInterval(function(){
 			if(time_remaining > 0)
 				refreshMedia();
-		},2000);
+		},3000);
 
 		window.history.pushState(location.href, "Fennec Station " + data, "?station="+data);
 
@@ -362,6 +357,7 @@ function loadMedia(data,time){
 }
 
 function loadSoundCloudTrack(url, time){
+	var currentId = url;
 	$('#content').empty();
 	$('#content').append('<iframe width="100%" height="600" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/' + url + '&amp;auto_play=true&amp;hide_related=false&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;visual=true#time=0:50"></iframe>');
 }
@@ -406,8 +402,8 @@ function browseView(){
 }
 
 function loadStationList(){
-	$('#stationContainer').empty();
 	$.get(host + "/api/stations", {},function(data){
+		$('#stationContainer').empty();
 		var i = 0;
 		var len = data.length;
 		for(var j = 0; j < len; j++){
