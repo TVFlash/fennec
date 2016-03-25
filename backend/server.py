@@ -165,7 +165,7 @@ def destroyStation(stationid):
 	station.id = -1
 	station.name = ''
 	station.color = ''
-	station.media_elapsed_time = 0
+	station.media_elapsed_time = -1
 	del station.clients[:]
 	del station.queue[:]
 	return jsonify({'status':'success'}), 201
@@ -242,23 +242,24 @@ def searchSoundCloud():
 #====================================================================================
 	
 def timer_func():
-	print 'timer_func called'
-	for station in stationList:
-		if station.id == -1:
-			continue
-		if station.media_elapsed_time == -1:
-			continue
-		elif station.media_elapsed_time != -1:
-			station.media_elapsed_time += 1
-		if station.media_elapsed_time >= station.queue[0].length:
-			print 'station media elapsed time > station\'s first media length'
-			station.queue.pop(0)
-			if len(station.queue) > 0:
-				print 'media_elapsed_time = 0'
-				station.media_elapsed_time = 0
-			else:
-				destroyStation(station.id)
-	threading.Timer(1, timer_func).start()
+	try:
+		for station in stationList:
+			if station.id == -1:
+				continue
+			if station.media_elapsed_time == -1:
+				continue
+			elif station.media_elapsed_time != -1:
+				station.media_elapsed_time += 1
+			if station.media_elapsed_time >= station.queue[0].length:
+				station.queue.pop(0)
+				if len(station.queue) > 0:
+					station.media_elapsed_time = 0
+				else:
+					destroyStation(station.id)
+	except:
+		print "Unexpected error:", sys.exc_info()[0]
+	finally:
+		threading.Timer(1, timer_func).start()
 
 
 #====================================================================================
@@ -293,9 +294,8 @@ def ws_destroyedStation():
 #MARK: Main
 #====================================================================================
 
-timer_func()
-
 if __name__ == '__main__':
+	timer_func()
 	app.run(host='0.0.0.0',port=2000,debug=True)
 	server = WebsocketServer(3000, "0.0.0.0")
 	server.set_fn_client_left(client_left)

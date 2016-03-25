@@ -18,7 +18,7 @@ var received = 0;
 
 var adjectives = ["Angry","Quick","Fast","Cute","Adorable","Tiny","Ferocious","Ugly","Smart","Dumb","Long","Spooky","Moon", "Fiery", "Chubby", "Esoteric", "Wild", "Calm", "Chill", "Neato", "Rad", "Pickled", "Tubby", "Indecent", "Educated", "Metal", "Solid", "Liquid", "Gaseous"];
 
-var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Tim", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture", "Moon"];
+var animals = ["Lion","Tiger","Bear","Snake","Fox","Cat","Dog","Jackalope","Rabbit","Joe", "Chicken", "Cniderian", "Octopus", "Jellyfish", "Roc", "Dragon", "Horse", "Aardvark", "Canary", "Parrot", "Ferret", "Eel", "Okapi", "Vulture", "Moon"];
 
 $(document).ready(function (){
 	$("#user").text("Loading...");
@@ -227,7 +227,7 @@ function createYTSearchPreviewItem(datum,num){
 
 function createSCSearchPreviewItem(datum, num){
 	if(datum.thumbnail == null)
-		datum.thumbnail = "soundcloud.png";
+		datum.thumbnail = "../static/soundcloud.png";
 	if(datum.description == null || datum.description === "")
 		datum.description = "Not Provided"
 	var preview = "<a onclick='addbox(" + (num + 5) + ")'><div class='previewBox'><img src='" + datum.thumbnail + "'/><h1>" + datum.title + "</h1><p>" + datum.uploader + "</p></div></a>";
