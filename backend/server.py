@@ -242,6 +242,7 @@ def searchSoundCloud():
 #====================================================================================
 	
 def timer_func():
+	print 'timer_func called'
 	for station in stationList:
 		if station.id == -1:
 			continue
@@ -250,8 +251,10 @@ def timer_func():
 		elif station.media_elapsed_time != -1:
 			station.media_elapsed_time += 1
 		if station.media_elapsed_time >= station.queue[0].length:
+			print 'station media elapsed time > station\'s first media length'
 			station.queue.pop(0)
 			if len(station.queue) > 0:
+				print 'media_elapsed_time = 0'
 				station.media_elapsed_time = 0
 			else:
 				destroyStation(station.id)
