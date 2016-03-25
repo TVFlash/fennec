@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, url_for, send_from_directory
+from flask import Flask, jsonify, request, url_for, send_from_directory, render_template
 from websocket_server import WebsocketServer
 import requests
 import json
@@ -58,7 +58,7 @@ stationList = [stationObject() for i in range(MAX_NUM_STATIONS)]
 
 @app.route('/')
 def index():
-	return "Please use /api/"
+	return app.send_static_file('index.html')
 
 @app.route('/api/create', methods=['POST'])
 def addStation():

@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>Fennec</title>
+		<link type="text/css" rel="stylesheet" href="full.css">
+		<script src="jquery-2.2.0.min.js"></script>
+	</head>
+	<body>
+		<header>
+			<div id="patch">
+				<div id="logo"></div>
+				<input placeholder="Search..." id="searchBox"></input>
+				<div id="searchWindow">
+					<center><h1>Nothing searched yet</h1></center>
+				</div>
+				<div id="user">testing</div>
+			</div>
+		</header>
+		<div id="stationCreator">
+			<h2>Create Station</h2>
+			<h3>Station Name</h3>
+			<input type="text" id="stationName" placeholder="Station Title">
+			<br />
+			<h3>Visibility</h3>
+			<input type="checkbox" id="stationVisible">
+			<br />
+			<h3>Color</h3>
+			<input type="color" id="stationColor" value="#008ae6">
+			<br />
+			<div id="buttonContainer">
+				<div id="create" class="button" style="float: left;">Create</div>
+			</div>
+			<div id="buttonContainer">
+				<div id="cancelCreate" class="button" style="float: right">Cancel</div>
+			</div>
+		</div>
+		<div id="leftBar">
+
+		</div>
+		<div id="chatBar">
+			<input id="chatBarInput" />
+			<div id="chatArea"></div>
+		</div>
+		<div id="content">
+
+		</div>
+		<div id="stations">
+			<div id="buttonContainer" style="float:left;">
+				<div id="createStation" class="button">Create Station</div>
+			</div>
+			<div id="buttonContainer" style="float:right;">
+				<div id="refreshStations" class="button">Refresh Stations</div>
+			</div>
+			<div id="stationContainer">
+
+			</div>
+		</div>
+
+
+
+
+		<footer></footer>
+	</body>
+	<script src="js.js"></script>
+</html>
