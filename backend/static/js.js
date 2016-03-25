@@ -6,7 +6,7 @@ var stationNum;
 var socket;
 var playlist = [];
 var host = "";
-var wshost = "http://moore14.cs.purdue.edu:5000/";
+var wshost = "ws://moore14.cs.purdue.edu:5000/";
 var current;
 var time_remaining;
 var time_passed;
