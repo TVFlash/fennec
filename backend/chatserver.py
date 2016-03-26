@@ -120,11 +120,10 @@ def client_join_chat_station(client, stationid):
 
 #Remove client from specific station
 def client_leave_chat_station(client, stationid):
-        if client in chat_station_users[stationid]:
+        for client in chat_station_users[stationid]:
                 chat_station_users[stationid].remove(client)
                 client_send_chat_station(client, stationid, "left the channel");
                 print("%d left %d" % (client['id'], stationid));
-                return
 #       print("%d not in %d" % (client['id'], stationid));
 	return
 
