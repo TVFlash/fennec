@@ -91,6 +91,7 @@ def message_received(client, server, message):
                                         client_leave_chat_station(cl, stationid)
 
 		#Send normal message
+				message.replace(' ', '')
                 client_send_chat_station(client, stationid, json_obj['message']);
 	elif json_obj['type'] == 'join':
 		#Join station
