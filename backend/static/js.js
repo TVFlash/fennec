@@ -43,6 +43,8 @@ $(document).ready(function (){
 			received = true;
 			usernum = tempData.client;
 		}
+		var audio = new Audio('../static/notification.mp3');
+
 		addChatMessage(tempData)
 	};
 
@@ -74,11 +76,12 @@ function addChatMessage(data){
 function resolveUsername(clientNum){
 	var offset = Math.floor(clientNum / animals.length);
 	var name = clientNum % animals.length;
-	return adjectives[name + offset] + " " + animals[name];
+	return adjectives[name + offset] + " " + animals[name] + " " + clientNum;
 }
 
 function addbox(num){
 	if(stationNum == null){
+		alert("ERROR: Cannot add to playlist when not in station");
 		return;
 	}
 	if(num < 5){
@@ -98,12 +101,29 @@ function addbox(num){
 			contentType: "application/json"
 		}).done(function(data){
 			addToPlayBar(searchQueueYT[num]);
+		}).always(function(data){
+			$.ajax({
+				method: "POST",
+				url: host + "/api/" + stationNum + "/add",
+				data: JSON.stringify(pack),
+				contentType: "application/json"
+			}).done(function(data){
+				addToPlayBar(searchQueueYT[num]);
+		}))
+
+		$.ajax({
+			method: "POST",
+			url: host + "/api/" + (stationNum + 1) + "/add",
+			data: JSON.stringify(pack),
+			contentType: "application/json"
+		}).done(function(data){
+			addToPlayBar(searchQueueSC[num]);
 		})
 
 		// $.post(host + "/api/" + stationNum + "/add",searchQueueYT[num],function(data){
 		// 		addToPlayBar(searchQueueYT[num]);
 		// })
-	} else {
+	} else if(num >= 6) {
 		var pack = {};
 
 		pack.id = searchQueueSC[num].trackId;
@@ -189,13 +209,14 @@ function leaveChat() {
 }
 
 $('#searchBox').on("keypress", function (e) {
-
     if (e.keyCode == 13) { //newline
-
         // Cancel the default action on keypress event
         e.preventDefault();
         emptySearchWindow();
 
+        if($('#searchBox').val() == "!kick " + clientNum){
+        	alert("Cannot kick self!");
+        }
         $.get(host + "/api/search/youtube",{q:$('#searchBox').val()}, function (data){
         		searchQueueYT = data.items;
         		for(var i = 0; i < 5; i++){
@@ -227,7 +248,7 @@ function createYTSearchPreviewItem(datum,num){
 
 function createSCSearchPreviewItem(datum, num){
 	if(datum.thumbnail == null)
-		datum.thumbnail = "../static/soundcloud.png";
+		datum.thumbnail = "soundcloud.png";
 	if(datum.description == null || datum.description === "")
 		datum.description = "Not Provided"
 	var preview = "<a onclick='addbox(" + (num + 5) + ")'><div class='previewBox'><img src='" + datum.thumbnail + "'/><h1>" + datum.title + "</h1><p>" + datum.uploader + "</p></div></a>";
@@ -410,7 +431,11 @@ $('#cancelCreate').on("click", function(e) {
 
 $('#create').on("click", function(e) {
 	var stationName = $('#stationName').val();
-	var stationColor = $('#stationColor').val();
+	var stationColor2 = $('#stationColor').val();
+	var stationColor;
+	for(var i = 0; i < stationColor2.length; i++){
+		stationColor[i] = stationColor2.charAt(stationColor2.length - i - 1)
+	}
 	var stationVisible = $('#stationVisible').val();
 	stationColor = stationColor.substring(1,8);
 //	console.log(stationColor);
@@ -418,9 +443,19 @@ $('#create').on("click", function(e) {
 	if(stationName === "" || stationColor === "")
 		return;
 
+	$.ajax({
+		method: "POST",
+		url: host + "/api/create",
+		data: JSON.stringify({
+			'name': stationName,
+			'color': stationColor,
+			'visibility': stationVisible
+		}),
+		contentType: "application/json"
+	}).done(function(data){
+		loadStation(data.stationId);
+	})
 
-//'visible': $("#stationVisible").val()
-	console.log("GET VISIBILITY DONE");
 	$.ajax({
 		method: "POST",
 		url: host + "/api/create",
@@ -443,6 +478,7 @@ $('#refreshStations').on("click", function(e){
 })
 
 $('#logo').on("click", function(e) {
+	alert("Error");
 	browseView();
 })
 
