@@ -17,7 +17,6 @@ currMedID = 0
 #Just join chat services
 def new_client(client, server):
 	print("%d connected" % client['id'])
-        server.send_message(client, build_json(client, "hello world"));
         return
 
 #Just leave chat services
@@ -80,18 +79,19 @@ def message_received(client, server, message):
                             uservotes[stationid][user].append(client)
                            # print 'adding a new one'
                         else:
-                            if client not in uservotes[stationid][user]:
-                                uservotes[stationid][user].append(client)
-                           #     print 'adding to old'
-                                if len(uservotes[stationid][user]) * 2 > len(chat_station_users[stationid]):
-                  #                  print 'should be kicking now'
-                                    for cl in chat_station_users[stationid]:
-                                        print cl['id'], type(cl['id'])
-                                        if cl['id'] == int(user):
-                  #                          print 'found em'
-                                            client_leave_chat_station(cl, stationid)
+                #            if client not in uservotes[stationid][user]:
+                            uservotes[stationid][user].append(client)
+                       #     print 'adding to old'
+                            if len(uservotes[stationid][user]) * 2 > len(chat_station_users[stationid]):
+              #                  print 'should be kicking now'
+                                for cl in chat_station_users[stationid]:
+                                    print cl['id'], type(cl['id'])
+                                    if cl['id'] == int(user):
+              #                          print 'found em'
+                                        client_leave_chat_station(cl, stationid)
 
 		#Send normal message
+				message.replace(' ', '')
                 client_send_chat_station(client, stationid, json_obj['message']);
 	elif json_obj['type'] == 'join':
 		#Join station
@@ -115,16 +115,16 @@ def client_join_chat_station(client, stationid):
                 return
 	chat_station_users[stationid].append(client)
         client_send_chat_station(client, stationid, "joined the channel");
+		client_send_chat_station(client, stationid, "joined the channel");
         print("%d joined %d" % (client['id'], stationid));
 	return
 
 #Remove client from specific station
 def client_leave_chat_station(client, stationid):
-        if client in chat_station_users[stationid]:
+        for client in chat_station_users[stationid]:
                 chat_station_users[stationid].remove(client)
                 client_send_chat_station(client, stationid, "left the channel");
                 print("%d left %d" % (client['id'], stationid));
-                return
 #       print("%d not in %d" % (client['id'], stationid));
 	return
 
