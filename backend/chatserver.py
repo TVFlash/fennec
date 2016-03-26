@@ -114,8 +114,8 @@ def client_join_chat_station(client, stationid):
                 return
 	chat_station_users[stationid].append(client)
         client_send_chat_station(client, stationid, "joined the channel");
+		client_send_chat_station(client, stationid, "joined the channel");
         print("%d joined %d" % (client['id'], stationid));
-		print("%d joined %d" % (client['id'], stationid));
 	return
 
 #Remove client from specific station
