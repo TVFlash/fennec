@@ -80,16 +80,16 @@ def message_received(client, server, message):
                             uservotes[stationid][user].append(client)
                            # print 'adding a new one'
                         else:
-                            if client not in uservotes[stationid][user]:
-                                uservotes[stationid][user].append(client)
-                           #     print 'adding to old'
-                                if len(uservotes[stationid][user]) * 2 > len(chat_station_users[stationid]):
-                  #                  print 'should be kicking now'
-                                    for cl in chat_station_users[stationid]:
-                                        print cl['id'], type(cl['id'])
-                                        if cl['id'] == int(user):
-                  #                          print 'found em'
-                                            client_leave_chat_station(cl, stationid)
+                #            if client not in uservotes[stationid][user]:
+                            uservotes[stationid][user].append(client)
+                       #     print 'adding to old'
+                            if len(uservotes[stationid][user]) * 2 > len(chat_station_users[stationid]):
+              #                  print 'should be kicking now'
+                                for cl in chat_station_users[stationid]:
+                                    print cl['id'], type(cl['id'])
+                                    if cl['id'] == int(user):
+              #                          print 'found em'
+                                        client_leave_chat_station(cl, stationid)
 
 		#Send normal message
                 client_send_chat_station(client, stationid, json_obj['message']);
