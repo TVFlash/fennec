@@ -64,7 +64,7 @@ def index():
 @app.route('/api/create', methods=['POST'])
 def addStation():
 	stationId = -1
-	for i in range(len(stationList)):
+	for i in range(len(stationList)+1):
 		if stationList[i].id == -1:
 			stationList[i].id = stationId = i
 			stationList[i].name = str(i)
