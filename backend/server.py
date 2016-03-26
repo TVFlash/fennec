@@ -49,7 +49,7 @@ def encode_object(obj):
 #MARK: Global variables
 #====================================================================================
 
-MAX_NUM_STATIONS = 100
+MAX_NUM_STATIONS = 101
 stationList = [stationObject() for i in range(MAX_NUM_STATIONS)]
 		
 
@@ -64,7 +64,7 @@ def index():
 @app.route('/api/create', methods=['POST'])
 def addStation():
 	stationId = -1
-	for i in range(len(stationList)+1):
+	for i in range(len(stationList)):
 		if stationList[i].id == -1:
 			stationList[i].id = stationId = i
 			stationList[i].name = str(i)
