@@ -109,7 +109,8 @@ function addbox(num){
 				contentType: "application/json"
 			}).done(function(data){
 				addToPlayBar(searchQueueYT[num]);
-		}))
+			})
+		})
 
 		$.ajax({
 			method: "POST",
@@ -214,9 +215,9 @@ $('#searchBox').on("keypress", function (e) {
         e.preventDefault();
         emptySearchWindow();
 
-        if($('#searchBox').val() == "!kick " + clientNum){
-        	alert("Cannot kick self!");
-        }
+        //if($('#searchBox').val() == "!kick " + clientNum){
+        //	alert("Cannot kick self!");
+        //}
         $.get(host + "/api/search/youtube",{q:$('#searchBox').val()}, function (data){
         		searchQueueYT = data.items;
         		for(var i = 0; i < 5; i++){
@@ -321,6 +322,7 @@ function refreshMedia(){
 		}
 		var data = playlist[0];
 		var time = datas.media_elapsed_time
+		console.log(data);
 		loadMedia(data, time);
 
 		// if(data.type == "YouTube"){
@@ -432,9 +434,9 @@ $('#cancelCreate').on("click", function(e) {
 $('#create').on("click", function(e) {
 	var stationName = $('#stationName').val();
 	var stationColor2 = $('#stationColor').val();
-	var stationColor;
-	for(var i = 0; i < stationColor2.length; i++){
-		stationColor[i] = stationColor2.charAt(stationColor2.length - i - 1)
+	var stationColor = "#"
+	for(var i = stationColor2.length - 1; i > 0; i--){
+		stationColor += stationColor2.charAt(i);
 	}
 	var stationVisible = $('#stationVisible').val();
 	stationColor = stationColor.substring(1,8);
